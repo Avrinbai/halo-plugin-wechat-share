@@ -1,0 +1,28 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Node / 控制台前端
+ui/node_modules/
+ui/dist/
+ui/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Halo 插件开发本地工作区（可选：若希望仓库内跟踪演示数据可删除下行）
+workplace/
+
+# 日志与环境
+*.log
+.env
+.env.*

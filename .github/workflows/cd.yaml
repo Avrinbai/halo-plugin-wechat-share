@@ -1,0 +1,63 @@
+name: CD
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      JAR_DIR: build/libs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (pnpm)
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+          pnpm --version
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew --no-daemon clean build
+
+      - name: Get built JAR
+        id: jar
+        shell: bash
+        run: |
+          shopt -s nullglob
+          jars=($JAR_DIR/*.jar)
+          if [ ${#jars[@]} -eq 0 ]; then
+            echo "No jar files found in $JAR_DIR"
+            exit 1
+          fi
+          jar_file="${jars[0]}"
+          jar_name="$(basename "$jar_file")"
+          echo "jar_file=$jar_file" >> "$GITHUB_OUTPUT"
+          echo "jar_name=$jar_name" >> "$GITHUB_OUTPUT"
+
+      - name: Create release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.jar.outputs.jar_file }}

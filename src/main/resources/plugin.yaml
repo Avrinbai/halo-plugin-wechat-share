@@ -1,0 +1,15 @@
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  name: wechat-share
+spec:
+  enabled: true
+  requires: ">=2.23.0"
+  author:
+    name: bai
+    website: https://avrinbai.cn
+  logo: logo.png
+  displayName: "自定义微信分享卡片"
+  description: "为你的网址在微信中“穿上衣服”"
+  license:
+    - name: "GPL-3.0"
