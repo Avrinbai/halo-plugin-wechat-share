@@ -22,7 +22,7 @@
 | 章节 | 说明 |
 |------|------|
 | [功能亮点](#功能亮点) | 能力列表 |
-| [预览图](#预览图) | 界面截图（可选） |
+| [预览图](#预览图) | 控制台与手机端截图 |
 | [快速开始](#快速开始) | 安装、配置、使用 |
 | [公开 URL 说明](#公开-url-说明) | 分享页、跳转、路径前缀 |
 | [本地开发](#本地开发) | 构建、调试 |
@@ -37,12 +37,25 @@
 
 ## 预览图
 
+### 控制台
+
 <div align="center">
 
 <img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="45%" />
 <img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="45%" />
 
 </div>
+
+### 手机端
+
+<div align="center">
+
+<img src="./images/mobile-preview_1.png" alt="微信内打开分享落地页" title="分享落地页与右上角分享引导" width="32%" />
+<img src="./images/mobile-preview_2.png" alt="会话中的链接卡片预览" title="会话中的标题、摘要与封面" width="32%" />
+<img src="./images/mobile-preview_3.png" alt="朋友圈详情中的分享卡片" title="朋友圈详情页卡片效果" width="32%" />
+
+</div>
+
 
 ## 快速开始
 
