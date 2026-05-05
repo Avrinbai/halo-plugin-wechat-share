@@ -25,8 +25,8 @@
 
 ### 3. 账号类型说明
 支持以下账号类型：
-- 公众号正式号
-- 公众号测试号
+- 公众/服务号
+- 测试号
 
 ### 4. 其他说明
 
@@ -95,7 +95,7 @@
 **微信公众平台侧（必须）：**
 
 - 在公众号后台配置 **[JS 接口安全域名](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#62)**（域名不含 `http(s)://` 与路径），须与你在微信内打开的分享页域名一致。
-- 开发调试可使用 **[接口测试号](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)**：将测试号提供的 AppId / AppSecret 填入本插件；测试号同样需在后台维护「JS 接口安全域名」及相关接口权限，流程与正式号类似。
+- 使用 **[测试号](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login)**：将测试号提供的 AppId / AppSecret 填入本插件；测试号同样需在后台维护「JS 接口安全域名」及相关接口权限，流程与正式号类似。
 
 ### 4) 新建卡片
 
