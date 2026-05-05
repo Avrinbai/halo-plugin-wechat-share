@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import run.halo.app.extension.Extension;
+import run.halo.app.extension.Scheme;
 import run.halo.app.extension.SchemeManager;
 import run.halo.app.extension.index.IndexSpec;
 
@@ -25,6 +26,16 @@ public class ExtensionSchemeRegistry {
     public synchronized void ensureRegistered() {
         ensureWechatShareCard();
         ensureWechatShareSettings();
+    }
+
+
+    public synchronized void prepareCardSchemeOnStartup() {
+        unregisterIfPresent(WechatShareCard.class);
+    }
+
+    public synchronized void unregisterOnStop() {
+        unregisterIfPresent(WechatShareCard.class);
+        unregisterIfPresent(WechatShareSettings.class);
     }
 
     private void ensureWechatShareCard() {
@@ -51,6 +62,18 @@ public class ExtensionSchemeRegistry {
             return schemeManager.get(type) != null;
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    private void unregisterIfPresent(Class<? extends Extension> type) {
+        try {
+            Scheme scheme = schemeManager.get(type);
+            if (scheme != null) {
+                schemeManager.unregister(scheme);
+                log.info("Unregistered extension scheme: {}", type.getName());
+            }
+        } catch (Exception ex) {
+            log.debug("Skip unregister for {} due to: {}", type.getName(), ex.getMessage());
         }
     }
 }
