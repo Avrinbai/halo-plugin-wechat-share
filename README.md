@@ -10,37 +10,50 @@
 
 </div>
 
-## 概览
+## 写在前面
 
-`Wechat Share` 是一款面向 **Halo 2.23+** 的微信自定义分享卡片插件：
+在开始使用本插件之前，请先完成以下必要配置，否则微信分享卡片将无法正常生效：
 
-- **控制台**：在「系统 → 工具」下维护分享卡片（标题、摘要、封面、跳转链接），集中配置公众号凭据与公开路径等。
-- **站点前台**：按配置的公开路径前缀提供 **`/share`**（微信内分享预览页 + JSSDK 注入）与 **`/go`**（带 `sid` 的 302 跳转）能力；
+### 1. 配置公众号信息
+在后台填写你的公众号 **AppId** 与 **AppSecret**，用于获取微信 JS-SDK 权限。
+
+### 2. 设置 JS 接口安全域名
+前往微信公众号后台，在「开发 → 接口权限」中配置 **JS 接口安全域名**，确保当前网站域名已加入白名单。
+
+> ⚠️ 未配置安全域名时，微信将无法正确获取自定义分享信息。
+
+### 3. 账号类型说明
+支持以下账号类型：
+- 公众号正式号
+- 公众号测试号
+
+二者均可正常使用本插件功能。
+---
 
 ## 目录
 
 | 章节 | 说明 |
 |------|------|
-| [功能亮点](#功能亮点) | 能力列表 |
+| [插件功能](#插件功能) | 能力列表 |
 | [预览图](#预览图) | 控制台与手机端截图 |
 | [快速开始](#快速开始) | 安装、配置、使用 |
 | [公开 URL 说明](#公开-url-说明) | 分享页、跳转、路径前缀 |
-| [本地开发](#本地开发) | 构建、调试 |
+| [微信域名校验（Nginx 映射）](#微信域名校验nginx-映射) | 
+| [二次开发及构建说明](#二次开发及构建说明) | 构建、调试 |
 | [许可证](#许可证) | 协议 |
 
-## 功能亮点
+## 插件功能
 
-- 分享卡片 CRUD：标题/摘要/封面/跳转 URL，独立 **SID** 与扩展存储
+- 分享卡片自定义：标题/摘要/封面/跳转 URL，独立 **SID** 与扩展存储
 - 列表内复制分享链接、编辑、删除；支持二维码预览
-- 插件设置：公众号 **AppId / AppSecret**（服务端换票与 `wx.config` 签名）、**公开路径前缀**（默认 `/wechat-share`）、**二维码生成服务** 等
+- 插件设置：公众号 **AppId / AppSecret**（服务端换票与 `wx.config` 签名）、**公开路径前缀**（默认 `/wechat-share`）
 - 分享页 HTML 在微信内置浏览器中注入 **jweixin**，更新朋友圈 / 会话分享数据
 
 ## 预览图
 
 ### 控制台
 
-<div align="center">
-
+<<div style="display:flex; gap:10px;">
 <img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="45%" />
 <img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="45%" />
 
@@ -48,8 +61,7 @@
 
 ### 手机端
 
-<div align="center">
-
+<div style="display:flex; gap:10px;">
 <img src="./images/mobile-preview_1.png" alt="微信内打开分享落地页" title="分享落地页与右上角分享引导" width="32%" />
 <img src="./images/mobile-preview_2.png" alt="会话中的链接卡片预览" title="会话中的标题、摘要与封面" width="32%" />
 <img src="./images/mobile-preview_3.png" alt="朋友圈详情中的分享卡片" title="朋友圈详情页卡片效果" width="32%" />
@@ -106,25 +118,61 @@
 
 ---
 
-## 本地开发
+## 微信域名校验（Nginx 映射方式）
 
-环境要求：**JDK 21**、**Node 20+**（推荐使用 **pnpm** 构建控制台）。
-
-```bash
-# 构建控制台前端（产物由 Gradle 拷贝进插件 resources）
-cd ui
-pnpm install
-pnpm run build
-cd ..
-
-# 编译并打包插件 JAR
-./gradlew.bat clean build -x test
-# Linux / macOS: ./gradlew clean build -x test
-```
-
-使用 Halo 官方 **插件开发** 工具链时，可在项目根目录执行 `./gradlew.bat haloServer`（或文档推荐命令）启动带插件装载的开发环境；详见 [Halo 插件开发文档](https://docs.halo.run/developer-guide/plugin/introduction)。
+该方式通过 Nginx 临时暴露校验文件，示例：
 
 ---
+
+### 1. 修改 Nginx 配置
+
+在站点配置中添加：
+
+```nginx
+location /MP_verify_xxxxx.txt {
+    root /www/wechat_verify;
+}
+```
+
+---
+
+### 2. 创建目录并放入文件
+
+```bash
+mkdir -p /www/wechat_verify
+mv MP_verify_xxxxx.txt /www/wechat_verify/
+```
+
+---
+
+### 3. 重载 Nginx
+
+```bash
+nginx -s reload
+```
+
+---
+
+### 4. 验证
+
+浏览器访问：
+
+```
+https://你的域名/MP_verify_xxxxx.txt
+```
+
+能够正常打开即配置成功 ✅
+
+---
+
+## 二次开发及构建说明
+
+独立部署（同域 / 独立域名 / 子路径）、环境变量、编译构建、Nginx、上线验证与排错等说明，请查阅：
+
+**[https://avrinbai.cn/archives/QXuapZl4](https://avrinbai.cn/archives/QXuapZl4)**
+
+---
+
 
 ## 许可证
 
