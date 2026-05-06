@@ -35,17 +35,24 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.register('processUiResources', Copy) {
+    group = 'build'
+    description = 'Builds :ui and copies dist into plugin resources (console)'
     from project(':ui').layout.buildDirectory.dir('dist')
     into layout.buildDirectory.dir('resources/main/console')
-    dependsOn project(':ui').tasks.named('assemble')
-    shouldRunAfter tasks.named('processResources')
+    dependsOn(project(':ui').tasks.named('assemble'))
+    dependsOn(tasks.named('processResources'))
 }
 
-tasks.named('classes') {
-    dependsOn tasks.named('processUiResources')
+tasks.named('processResources') {
+    finalizedBy(tasks.named('processUiResources'))
+}
+
+tasks.named('compileTestJava') {
+    dependsOn(tasks.named('processUiResources'))
 }
 
 tasks.named('jar') {
+    dependsOn(tasks.named('processUiResources'))
     manifest {
         attributes('Plugin-Main-Class': 'com.avrinbai.wechatshare.WechatSharePlugin')
     }

@@ -8,4 +8,4 @@ spec:
   className: com.avrinbai.wechatshare.web.WechatSharePublicWebFilter
   extensionPointName: additional-webfilter
   displayName: WechatSharePublicWebFilter
-  description: 注册公开路径「前缀/share」「前缀/go」，用于微信分享页与跳转。
+  description: 注册公开路径「前缀/share」「前缀/go」，用于微信分享落地页与跳转。

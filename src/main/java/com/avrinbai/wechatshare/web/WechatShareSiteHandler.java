@@ -1,7 +1,10 @@
 package com.avrinbai.wechatshare.web;
 
+import com.avrinbai.wechatshare.WechatShareCardKind;
 import com.avrinbai.wechatshare.service.WechatShareCardService;
 import com.avrinbai.wechatshare.service.WechatShareSettingsService;
+import com.avrinbai.wechatshare.support.HtmlEscapes;
+import com.avrinbai.wechatshare.support.HttpUrls;
 import com.avrinbai.wechatshare.support.PublicUrls;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -45,16 +48,30 @@ public class WechatShareSiteHandler {
                     try {
                         var signUrl = request.uri().toString().split("#")[0];
                         var site = settingsService.resolveExternalSiteUrl(settings);
-                        var wechatShareLink = PublicUrls.absoluteHttp(
-                            site,
-                            WechatShareSettingsService.normalizePath(
-                                    settings.getSpec() == null ? null : settings.getSpec().getPublicBasePath(),
-                                    WechatShareSettingsService.DEFAULT_PUBLIC_BASE_PATH
-                                )
-                                + "/go?sid="
-                                + java.net.URLEncoder.encode(sid, StandardCharsets.UTF_8)
+                        var basePath = WechatShareSettingsService.normalizePath(
+                            settings.getSpec() == null ? null : settings.getSpec().getPublicBasePath(),
+                            WechatShareSettingsService.DEFAULT_PUBLIC_BASE_PATH
                         );
-                        var html = sharePageRenderer.render(card, settings, signUrl, wechatShareLink);
+                        var kind = WechatShareCardKind.normalize(card.getSpec().getCardKind());
+
+                        String wechatShareLink;
+                        if (WechatShareCardKind.LINK.equals(kind)) {
+                            wechatShareLink = PublicUrls.absoluteHttp(
+                                site,
+                                basePath + "/go?sid=" + java.net.URLEncoder.encode(sid, StandardCharsets.UTF_8)
+                            );
+                        } else {
+                            wechatShareLink = PublicUrls.absoluteHttp(
+                                site,
+                                basePath + "/share?sid=" + java.net.URLEncoder.encode(sid, StandardCharsets.UTF_8)
+                                    + "&hint=0"
+                            );
+                        }
+
+                        var hintParam = request.queryParam("hint").orElse("");
+                        var showShareHint = !"0".equals(hintParam);
+
+                        var html = sharePageRenderer.render(card, settings, signUrl, wechatShareLink, showShareHint);
                         return ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(html);
                     } catch (Exception e) {
                         return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -75,7 +92,7 @@ public class WechatShareSiteHandler {
                         .bodyValue(notFoundHtml("链接不存在或已删除"));
                 }
                 var raw = card.getSpec().getRedirectUrl().trim();
-                var target = normalizeRedirect(raw);
+                var target = HttpUrls.normalize(raw);
                 try {
                     var uri = URI.create(target);
                     var scheme = uri.getScheme();
@@ -93,36 +110,12 @@ public class WechatShareSiteHandler {
             });
     }
 
-    private static String normalizeRedirect(String url) {
-        var u = url.trim();
-        if (u.startsWith("//")) {
-            return "https:" + u;
-        }
-        if (!u.matches("(?i)^https?://.*")) {
-            return "https://" + u;
-        }
-        return u;
-    }
-
     private static String notFoundHtml(String msg) {
         return "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
             + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
             + "<title>提示</title></head><body>"
             + "<p style=\"text-align:center;margin-top:200px;font-size:18px;color:#666;\">"
-            + HtmlEscapeCompat.escape(msg)
+            + HtmlEscapes.text(msg)
             + "</p></body></html>";
-    }
-
-    private static final class HtmlEscapeCompat {
-        static String escape(String s) {
-            if (s == null) {
-                return "";
-            }
-            return s.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
-        }
     }
 }

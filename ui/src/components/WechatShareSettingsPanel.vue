@@ -94,12 +94,12 @@ defineExpose({ load })
         </p>
 
         <div class="settings-field">
-          <div class="settings-field-label">公众号 AppId</div>
+          <div class="settings-field-label">AppId</div>
           <input v-model="form.wxAppId" type="text" class="settings-input" autocomplete="off" placeholder="wx…" />
         </div>
 
         <div class="settings-field">
-          <div class="settings-field-label">公众号 AppSecret</div>
+          <div class="settings-field-label">AppSecret</div>
           <input
             v-model="form.wxAppSecret"
             type="password"
@@ -127,7 +127,7 @@ defineExpose({ load })
         <div class="settings-field">
           <div class="settings-field-label">二维码上游接口</div>
           <input v-model="form.qrcodeApiBase" type="text" class="settings-input" placeholder="https://…" />
-          <p class="settings-hint">用于分享卡片二维码生成。</p>
+          <p class="settings-hint">用于分享卡片二维码生成，保持默认即可。</p>
         </div>
       </div>
     </div>

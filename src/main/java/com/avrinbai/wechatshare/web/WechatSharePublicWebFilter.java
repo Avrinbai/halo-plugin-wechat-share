@@ -37,7 +37,7 @@ public class WechatSharePublicWebFilter implements AdditionalWebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         var method = exchange.getRequest().getMethod();
-        if (method == null || !HttpMethod.GET.equals(method)) {
+        if (method == null) {
             return chain.filter(exchange);
         }
         var path = stripTrailingSlash(exchange.getRequest().getPath().pathWithinApplication().value());
@@ -49,6 +49,11 @@ public class WechatSharePublicWebFilter implements AdditionalWebFilter {
                 );
                 var sharePath = base + "/share";
                 var goPath = base + "/go";
+
+                if (!HttpMethod.GET.equals(method)) {
+                    return chain.filter(exchange);
+                }
+
                 if (!path.equals(sharePath) && !path.equals(goPath)) {
                     return chain.filter(exchange);
                 }

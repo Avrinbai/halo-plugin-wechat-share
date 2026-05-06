@@ -13,7 +13,7 @@ spec:
   repo: https://github.com/Avrinbai/halo-plugin-wechat-share
   issues: https://github.com/Avrinbai/halo-plugin-wechat-share/issues
   displayName: "自定义微信分享卡片"
-  description: "为你的网址在微信中“穿上衣服”"
+  description: "支持将网址、图片、音乐、视频、文件封装为卡片样式分享至微信"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/Avrinbai/halo-plugin-wechat-share/blob/main/LICENSE"

@@ -1,12 +1,14 @@
 package com.avrinbai.wechatshare.api;
 
 import com.avrinbai.wechatshare.WechatShareConstants;
+import com.avrinbai.wechatshare.WechatShareCardKind;
 import com.avrinbai.wechatshare.extension.WechatShareCard;
 import com.avrinbai.wechatshare.extension.WechatShareSettings;
 import com.avrinbai.wechatshare.service.WechatShareCardService;
 import com.avrinbai.wechatshare.service.WechatShareSettingsService;
 import com.avrinbai.wechatshare.support.PublicUrls;
 import com.avrinbai.wechatshare.support.ShareLinks;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.MediaType;
@@ -41,9 +43,9 @@ public class AdminWechatShareController {
     }
 
     @PostMapping("/cards")
-    public Envelope<CardDto> create(@RequestBody CreateCardReq req) {
+    public Envelope<CardDto> create(@RequestBody CardWriteRequest req) {
         try {
-            var card = cardService.create(req.title(), req.description(), req.img(), req.redirectUrl());
+            var card = cardService.create(req);
             return Envelope.ok(toCardDto(card, resolveLinkContext()));
         } catch (IllegalArgumentException ex) {
             return Envelope.error(ex.getMessage());
@@ -53,9 +55,9 @@ public class AdminWechatShareController {
     }
 
     @PutMapping("/cards/{metadataName}")
-    public Envelope<CardDto> update(@PathVariable("metadataName") String metadataName, @RequestBody CreateCardReq req) {
+    public Envelope<CardDto> update(@PathVariable("metadataName") String metadataName, @RequestBody CardWriteRequest req) {
         try {
-            var card = cardService.update(metadataName, req.title(), req.description(), req.img(), req.redirectUrl());
+            var card = cardService.update(metadataName, req);
             return Envelope.ok(toCardDto(card, resolveLinkContext()));
         } catch (IllegalArgumentException ex) {
             return Envelope.error(ex.getMessage());
@@ -131,17 +133,49 @@ public class AdminWechatShareController {
             shareQrcodeDataUrl = "data:" + mime + ";base64," + b64;
         }
 
+        var kind = WechatShareCardKind.normalize(spec.getCardKind());
+
         return new CardDto(
             card.getMetadata().getName(),
             sid,
+            kind,
             spec.getTitle(),
             spec.getDescription(),
             spec.getImg(),
             spec.getRedirectUrl(),
+            spec.getMediaUrl(),
+            spec.getDisplayName(),
+            spec.getOptionalLinkLabel(),
+            spec.getOptionalLinkUrl(),
+            mapFileNotes(spec),
+            spec.getContactInfo(),
+            spec.getVideoTitle(),
+            spec.getVideoGuideText(),
+            spec.getVideoExtraLink(),
+            spec.getVideoExtraLinkLabel(),
             shareUrl,
             goUrl,
             shareQrcodeDataUrl
         );
+    }
+
+    private static List<FileNoteDto> mapFileNotes(WechatShareCard.Spec spec) {
+        var list = spec.getFileNotes();
+        if (list == null || list.isEmpty()) {
+            return List.of();
+        }
+        var out = new ArrayList<FileNoteDto>(list.size());
+        for (var n : list) {
+            if (n == null) {
+                continue;
+            }
+            var title = n.getTitle() == null ? "" : n.getTitle();
+            var detail = n.getDetail() == null ? "" : n.getDetail();
+            var url = n.getUrl() == null ? "" : n.getUrl();
+            var jump = Boolean.TRUE.equals(n.getJumpLink());
+            out.add(new FileNoteDto(title, detail, jump, url));
+        }
+        return List.copyOf(out);
     }
 
     private static String defaultImageMime(String mime) {
@@ -151,20 +185,31 @@ public class AdminWechatShareController {
     private record LinkContext(String siteUrl, String publicBase) {
     }
 
-    public record CreateCardReq(String title, String description, String img, String redirectUrl) {
-    }
-
     public record CardDto(
         String metadataName,
         String sid,
+        String cardKind,
         String title,
         String description,
         String img,
         String redirectUrl,
+        String mediaUrl,
+        String displayName,
+        String optionalLinkLabel,
+        String optionalLinkUrl,
+        List<FileNoteDto> fileNotes,
+        String contactInfo,
+        String videoTitle,
+        String videoGuideText,
+        String videoExtraLink,
+        String videoExtraLinkLabel,
         String shareUrl,
         String goUrl,
         String shareQrcodeDataUrl
     ) {
+    }
+
+    public record FileNoteDto(String title, String detail, boolean jumpLink, String url) {
     }
 
     public record ShareQrPayload(String mimeType, String base64) {

@@ -1,5 +1,6 @@
 package com.avrinbai.wechatshare.service;
 
+import com.avrinbai.wechatshare.support.QrUpstreamGuard;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,8 +21,10 @@ public class ShareQrCodeService {
 
     private static final int MAX_BYTES = 512 * 1024;
 
-    private final HttpClient httpClient =
-        HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
+    private final HttpClient httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build();
 
     public Optional<QrFetchResult> fetchAsBase64(String qrcodeApiBase, String shareUrlToEncode) {
         if (qrcodeApiBase == null || qrcodeApiBase.isBlank()) {
@@ -34,8 +37,18 @@ public class ShareQrCodeService {
         var sep = base.contains("?") ? "&" : "?";
         var url =
             base + sep + "text=" + java.net.URLEncoder.encode(shareUrlToEncode.trim(), StandardCharsets.UTF_8);
+        URI uri;
         try {
-            var uri = URI.create(url);
+            uri = URI.create(url);
+        } catch (IllegalArgumentException ex) {
+            log.warn("QR upstream URL invalid: {}", ex.toString());
+            return Optional.empty();
+        }
+        if (!QrUpstreamGuard.allows(uri)) {
+            log.warn("QR upstream host rejected: {}", uri.getHost());
+            return Optional.empty();
+        }
+        try {
             var req = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(20)).GET().build();
             var res = httpClient.send(req, HttpResponse.BodyHandlers.ofByteArray());
             if (res.statusCode() < 200 || res.statusCode() >= 300) {
