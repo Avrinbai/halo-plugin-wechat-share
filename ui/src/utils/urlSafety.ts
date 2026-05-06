@@ -4,7 +4,6 @@ export function hasDangerousProtocol(raw: string): boolean {
   return DANGEROUS_PROTOCOL.test(raw.trim())
 }
 
-/** 跳转链接：必须为完整 http(s)，禁止 javascript/data 等协议 */
 export function validateRedirectUrl(raw: string): string | null {
   const s = raw.trim()
   if (!s) return '跳转链接不能为空'
@@ -19,9 +18,7 @@ export function validateRedirectUrl(raw: string): string | null {
   }
 }
 
-/**
- * 封面图：允许完整 http(s)、协议相对 //、或以 / 开头的站内路径（提交前再由站点地址拼成绝对 URL）。
- */
+
 export function validateCoverUrl(raw: string): string | null {
   const s = raw.trim()
   if (!s) return '封面图不能为空'
@@ -32,8 +29,7 @@ export function validateCoverUrl(raw: string): string | null {
   return '封面图需为 http(s) 链接、以 // 开头的协议相对地址、或以 / 开头的站内路径'
 }
 
-/** 将站内相对路径转为绝对 URL；已是绝对地址则原样返回 */
-/** 提交后端前：封面解析后的最终地址必须是绝对 http(s)。 */
+
 export function validateAbsoluteHttpUrl(raw: string): string | null {
   const s = raw.trim()
   if (!s) return '地址不能为空'

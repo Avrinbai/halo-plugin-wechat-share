@@ -37,8 +37,8 @@ export function getApiErrorMessage(
   return fallback
 }
 
-export async function getData<T>(path: string): Promise<T> {
-  const res = await client.get<Envelope<T>>(path)
+export async function getData<T>(path: string, config?: Parameters<typeof client.get>[1]): Promise<T> {
+  const res = await client.get<Envelope<T>>(path, config)
   if (!res.data?.ok) throw toApiError(res.data)
   return res.data.data
 }

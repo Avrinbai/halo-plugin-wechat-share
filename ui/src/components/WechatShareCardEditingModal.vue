@@ -2,6 +2,7 @@
 import { computed, toRefs, watch } from 'vue'
 import { VButton, VModal } from '@halo-dev/components'
 import RiArrowDownSLine from '~icons/ri/arrow-down-s-line'
+import { appendDisplayCacheBust } from '@/utils/attachmentUrl'
 
 export type CardKind = 'link' | 'image' | 'audio' | 'video' | 'file'
 
@@ -204,8 +205,15 @@ const previewSub = computed(() => {
 /** 与前台视频简介一致（videoGuideText） */
 const videoPreviewCaption = computed(() => form.value.videoGuideText.trim())
 
+/** 依赖 props.form.img，确保选附件后预览随地址更新，并弱化浏览器对同 URL 的强缓存 */
+const coverPreviewSrc = computed(() => {
+  const raw = props.form.img.trim()
+  if (!raw) return ''
+  return appendDisplayCacheBust(raw)
+})
+
 const vvPosterStyle = computed(() => {
-  const u = form.value.img.trim()
+  const u = coverPreviewSrc.value
   if (!u) return {}
   const safe = u.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   return {
@@ -252,7 +260,7 @@ function removeFileNote(index: number) {
 
 <template>
   <VModal :visible="visible" :title="modalTitle" :width="960" @close="emit('close')">
-    <div class="editor">
+    <div class="editor" :class="{ 'editor--no-preview': form.cardKind === 'link' }">
       <div class="editor__main">
         <div v-if="mode === 'edit' && sid" class="plugin-field">
           <label class="plugin-label" for="wechat-share-sid">SID（不可修改）</label>
@@ -588,25 +596,23 @@ function removeFileNote(index: number) {
         <p v-if="errors.general" class="plugin-error">{{ errors.general }}</p>
       </div>
 
-      <aside class="editor__aside" aria-label="实时预览">
+      <aside v-if="form.cardKind !== 'link'" class="editor__aside" aria-label="实时预览">
         <div class="preview">
           <div class="preview__device" :class="'preview__device--' + form.cardKind">
             <div class="preview__body">
-              <!-- 链接：经典居中卡片 -->
-              <div v-if="form.cardKind === 'link'" class="pv-link">
-                <div class="pv-link-sheet">
-                  <p class="pv-link-h">{{ previewHeadline }}</p>
-                  <p v-if="previewSub" class="pv-link-sub">{{ previewSub }}</p>
-                  <p class="pv-link-note">右上角 ··· 分享（示意）</p>
-                </div>
-              </div>
-
               <!-- 图片：对齐前台 WechatSharePageRenderer appendImageShell（body-im + in-* 相关说明） -->
-              <div v-else-if="form.cardKind === 'image'" class="pv-img-shell">
+              <div v-if="form.cardKind === 'image'" class="pv-img-shell">
                 <div class="pv-img-stack">
                   <div class="pv-img-card">
                     <div v-if="form.img.trim()" class="pv-img-frame">
-                      <img class="pv-img-photo" :src="form.img" alt="" loading="lazy" decoding="async" />
+                      <img
+                        :key="coverPreviewSrc"
+                        class="pv-img-photo"
+                        :src="coverPreviewSrc"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                     <div class="pv-img-body">
                       <h1 class="pv-img-title">{{ previewHeadline }}</h1>
@@ -653,7 +659,14 @@ function removeFileNote(index: number) {
                       <div class="pv-au-groove" aria-hidden="true"></div>
                       <div class="pv-au-disc">
                         <div class="pv-au-art-wrap">
-                          <img v-if="form.img.trim()" class="pv-au-art" :src="form.img" alt="" loading="lazy" />
+                          <img
+                            v-if="form.img.trim()"
+                            :key="coverPreviewSrc"
+                            class="pv-au-art"
+                            :src="coverPreviewSrc"
+                            alt=""
+                            loading="lazy"
+                          />
                           <div v-else class="pv-au-art pv-au-art--ph" aria-hidden="true"></div>
                         </div>
                         <div class="pv-au-play" aria-hidden="true">
@@ -676,8 +689,8 @@ function removeFileNote(index: number) {
 
               <!-- 视频：与前台抖音式沉浸条一致（示意） -->
               <div v-else-if="form.cardKind === 'video'" class="pv-vv">
-                <div class="pv-vv-shell">
-                  <div class="pv-vv-video" :style="vvPosterStyle">
+                  <div class="pv-vv-shell">
+                  <div class="pv-vv-video" :key="coverPreviewSrc || 'vv-poster'" :style="vvPosterStyle">
                     <div class="pv-vv-grad" aria-hidden="true"></div>
                     <span class="pv-vv-play" aria-hidden="true"></span>
                     <div class="pv-vv-dock">
@@ -705,7 +718,14 @@ function removeFileNote(index: number) {
                 <div class="pv-fp-container">
                   <div class="pv-fp-card">
                     <div class="pv-fp-cover-wrap">
-                      <img v-if="form.img.trim()" class="pv-fp-cover" :src="form.img" alt="" loading="lazy" />
+                      <img
+                        v-if="form.img.trim()"
+                        :key="coverPreviewSrc"
+                        class="pv-fp-cover"
+                        :src="coverPreviewSrc"
+                        alt=""
+                        loading="lazy"
+                      />
                       <div v-else class="pv-fp-cover pv-fp-cover--ph" aria-hidden="true" />
                     </div>
                     <p class="pv-fp-title">{{ filePreviewPrimary }}</p>
@@ -769,6 +789,10 @@ function removeFileNote(index: number) {
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 16px;
   align-items: start;
+}
+
+.editor.editor--no-preview {
+  grid-template-columns: 1fr;
 }
 
 @media (max-width: 980px) {
@@ -849,47 +873,6 @@ function removeFileNote(index: number) {
 }
 
 /* —— 预览：与前台落地页结构对齐 —— */
-.pv-link {
-  padding: 10px 4px 6px;
-}
-
-.pv-link-sheet {
-  margin: 0 auto;
-  max-width: 17rem;
-  background: #fff;
-  border: 1px solid #ebebeb;
-  border-radius: 12px;
-  padding: 16px 14px;
-  box-shadow: 0 10px 28px rgb(15 23 42 / 0.06);
-}
-
-.pv-link-h {
-  margin: 0;
-  text-align: center;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: #141414;
-  line-height: 1.35;
-}
-
-.pv-link-sub {
-  margin: 10px 0 0;
-  text-align: center;
-  font-size: 0.86rem;
-  line-height: 1.55;
-  color: #525252;
-}
-
-.pv-link-note {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid #ebebeb;
-  text-align: center;
-  font-size: 0.78rem;
-  line-height: 1.55;
-  color: #737373;
-}
 
 /* 图片预览：对齐前台 wechat-share/landing/image.css（img-* / in-*） */
 .pv-img-shell {

@@ -13,7 +13,6 @@ import {
   VPagination,
   VSpace,
 } from '@halo-dev/components'
-import { utils } from '@halo-dev/ui-shared'
 import WechatShareCardEditingModal, {
   type CardKind,
   type FileNoteFormItem,
@@ -22,7 +21,7 @@ import WechatShareCardEditingModal, {
 } from '@/components/WechatShareCardEditingModal.vue'
 import WechatShareSettingsPanel from '@/components/WechatShareSettingsPanel.vue'
 import { deleteData, getApiErrorMessage, getData, postData, putData } from '@/api/client'
-import { extractAttachmentUrl, type AttachmentLike } from '@/utils/attachmentUrl'
+import { extractAttachmentUrl, thumbSrcForCardRow, type AttachmentLike } from '@/utils/attachmentUrl'
 import {
   resolveAbsoluteAssetUrl,
   validateAbsoluteHttpUrl,
@@ -70,6 +69,8 @@ const modalMode = ref<'create' | 'edit'>('create')
 const editingMetadataName = ref<string | null>(null)
 const editingSid = ref('')
 const attachmentModalOpen = ref(false)
+/** 每次打开附件选择器递增，强制重挂载，避免内部状态或 v-model 未同步导致第二次无法选 */
+const attachmentPickerKey = ref(0)
 const attachmentTarget = ref<'img' | 'mediaUrl'>('img')
 function emptyFileNote(): FileNoteFormItem {
   return { title: '', detail: '', jumpLink: false, url: '' }
@@ -165,7 +166,9 @@ async function load() {
   loading.value = true
   try {
     refreshPublicOrigin()
-    cards.value = await getData<WechatShareCardRow[]>('/cards')
+    cards.value = await getData<WechatShareCardRow[]>('/cards', {
+      params: { _t: Date.now() },
+    })
   } catch (e) {
     Dialog.error({
       title: '加载失败',
@@ -184,6 +187,7 @@ function resetEditState() {
 
 function closeModal() {
   modalOpen.value = false
+  attachmentModalOpen.value = false
   resetEditState()
 }
 
@@ -259,36 +263,42 @@ function openEditModal(row: WechatShareCardRow) {
   modalOpen.value = true
 }
 
-function openAttachmentPicker(target: 'img' | 'mediaUrl') {
+async function openAttachmentPicker(target: 'img' | 'mediaUrl') {
   attachmentTarget.value = target
+  attachmentModalOpen.value = false
+  await nextTick()
+  attachmentPickerKey.value += 1
+  await nextTick()
   attachmentModalOpen.value = true
 }
 
 function onAttachmentSelect(items: AttachmentLike[]) {
-  const url = extractAttachmentUrl(items)
-  if (url) {
-    if (attachmentTarget.value === 'mediaUrl') {
-      form.mediaUrl = url
-      if (formErrors.mediaUrl) formErrors.mediaUrl = undefined
-    } else {
-      form.img = url
-      if (formErrors.img) formErrors.img = undefined
+  try {
+    const url = extractAttachmentUrl(items)
+    if (url) {
+      if (attachmentTarget.value === 'mediaUrl') {
+        form.mediaUrl = url
+        if (formErrors.mediaUrl) formErrors.mediaUrl = undefined
+      } else {
+        form.img = url
+        if (formErrors.img) formErrors.img = undefined
+      }
+      return
     }
-    return
+    const first = items?.[0]
+    const specKeys = first?.spec ? Object.keys(first.spec) : []
+    const statusKeys = first?.status ? Object.keys(first.status) : []
+    Dialog.warning({
+      title: '提示',
+      description: `未获取到附件 URL，请检查附件字段（spec: ${specKeys.join(', ') || '-'}；status: ${statusKeys.join(', ') || '-'}）`,
+    })
+  } finally {
+    attachmentModalOpen.value = false
   }
-  const first = items?.[0]
-  const specKeys = first?.spec ? Object.keys(first.spec) : []
-  const statusKeys = first?.status ? Object.keys(first.status) : []
-  Dialog.warning({
-    title: '提示',
-    description: `未获取到附件 URL，请检查附件字段（spec: ${specKeys.join(', ') || '-'}；status: ${statusKeys.join(', ') || '-'}）`,
-  })
 }
 
 function thumbSrc(url: string) {
-  const raw = (url || '').trim()
-  if (!raw) return ''
-  return utils.attachment.getThumbnailUrl(raw, 'M')
+  return thumbSrcForCardRow(url)
 }
 
 function rowKindLabel(kind: string | undefined | null) {
@@ -572,6 +582,7 @@ async function submitModal() {
     redirectFinal,
   )
 
+  const editedMeta = modalMode.value === 'edit' ? editingMetadataName.value : null
   saving.value = true
   try {
     let saved: WechatShareCardRow
@@ -585,6 +596,12 @@ async function submitModal() {
     closeModal()
     resetForm()
     await load()
+    if (editedMeta) {
+      const i = cards.value.findIndex((c) => c.metadataName === editedMeta)
+      if (i >= 0) {
+        cards.value[i] = { ...cards.value[i], ...saved }
+      }
+    }
     openShareQrModal(saved.shareQrcodeDataUrl, saved.cardKind as CardKind)
   } catch (e) {
     Dialog.error({
@@ -671,6 +688,7 @@ onMounted(() => {
   />
 
   <AttachmentSelectorModal
+    :key="attachmentPickerKey"
     v-model:visible="attachmentModalOpen"
     :max="1"
     :accepts="attachmentAccepts"
@@ -802,7 +820,13 @@ onMounted(() => {
                 <td class=":uno: px-3 py-3 align-middle">
                   <div class=":uno: min-w-0 flex items-center gap-3">
                     <div v-if="row.img" class="thumb">
-                      <img class="thumb__img" :src="thumbSrc(row.img)" :alt="row.title" loading="lazy" />
+                      <img
+                        class="thumb__img"
+                        :key="`${row.metadataName}:${row.img || ''}`"
+                        :src="thumbSrc(row.img)"
+                        :alt="row.title"
+                        loading="lazy"
+                      />
                     </div>
                     <div v-else class="thumb thumb--placeholder" :aria-hidden="true">
                       <span class="thumb__letter">{{ row.title.slice(0, 1) }}</span>
