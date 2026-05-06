@@ -78,17 +78,20 @@
 ### 控制台
 
 <div style="display:flex; gap:10px;">
-<img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="45%" />
-<img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="45%" />
+<img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="33%" />
+<img src="./images/admin-cards-edit.png" alt="控制台-插件配置" title="插件配置" width="33%" />
+<img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="33%" />
 
 </div>
 
 ### 手机端
 
 <div style="display:flex; gap:10px;">
-<img src="./images/mobile-preview_1.png" alt="微信内打开分享落地页" title="分享落地页与右上角分享引导" width="32%" />
-<img src="./images/mobile-preview_2.png" alt="会话中的链接卡片预览" title="会话中的标题、摘要与封面" width="32%" />
-<img src="./images/mobile-preview_3.png" alt="朋友圈详情中的分享卡片" title="朋友圈详情页卡片效果" width="32%" />
+<img src="./images/mobile-preview.png"  width="20%" />
+<img src="./images/mobile-preview_2.png"  width="20%" />
+<img src="./images/mobile-preview_3.png"  width="20%" />
+<img src="./images/mobile-preview_4.png"  width="20%" />
+<img src="./images/mobile-preview_5.png"  width="20%" />
 
 </div>
 
