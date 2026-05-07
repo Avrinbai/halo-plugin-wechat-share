@@ -4,6 +4,8 @@ import com.avrinbai.wechatshare.WechatShareCardKind;
 import com.avrinbai.wechatshare.WechatShareCardStates;
 import com.avrinbai.wechatshare.service.WechatShareCardService;
 import com.avrinbai.wechatshare.service.WechatShareSettingsService;
+import com.avrinbai.wechatshare.service.WechatShareVisitRecorder;
+import com.avrinbai.wechatshare.support.VisitHitType;
 import com.avrinbai.wechatshare.support.HtmlEscapes;
 import com.avrinbai.wechatshare.support.HttpUrls;
 import com.avrinbai.wechatshare.support.PublicUrls;
@@ -23,15 +25,18 @@ public class WechatShareSiteHandler {
     private final WechatShareCardService cardService;
     private final WechatShareSettingsService settingsService;
     private final WechatSharePageRenderer sharePageRenderer;
+    private final WechatShareVisitRecorder visitRecorder;
 
     public WechatShareSiteHandler(
         WechatShareCardService cardService,
         WechatShareSettingsService settingsService,
-        WechatSharePageRenderer sharePageRenderer
+        WechatSharePageRenderer sharePageRenderer,
+        WechatShareVisitRecorder visitRecorder
     ) {
         this.cardService = cardService;
         this.settingsService = settingsService;
         this.sharePageRenderer = sharePageRenderer;
+        this.visitRecorder = visitRecorder;
     }
 
     public Mono<ServerResponse> share(ServerRequest request) {
@@ -78,6 +83,7 @@ public class WechatShareSiteHandler {
                         var showShareHint = !"0".equals(hintParam);
 
                         var html = sharePageRenderer.render(card, settings, signUrl, wechatShareLink, showShareHint);
+                        visitRecorder.recordAsync(request, sid, VisitHitType.SHARE);
                         return ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(html);
                     } catch (Exception e) {
                         return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -112,6 +118,7 @@ public class WechatShareSiteHandler {
                             .contentType(MediaType.TEXT_HTML)
                             .bodyValue(notFoundHtml("跳转地址无效"));
                     }
+                    visitRecorder.recordAsync(request, sid, VisitHitType.GO);
                     return ServerResponse.status(HttpStatus.FOUND).location(uri).build();
                 } catch (Exception e) {
                     return ServerResponse.status(HttpStatus.BAD_REQUEST)

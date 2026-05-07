@@ -152,12 +152,14 @@ public class AdminWechatShareController {
 
         var kind = WechatShareCardKind.normalize(spec.getCardKind());
         var enabled = WechatShareCardStates.isEnabled(card);
+        var visitCount = spec.getVisitCount() == null ? 0L : spec.getVisitCount();
 
         return new CardDto(
             card.getMetadata().getName(),
             sid,
             kind,
             enabled,
+            visitCount,
             spec.getTitle(),
             spec.getDescription(),
             spec.getImg(),
@@ -209,6 +211,7 @@ public class AdminWechatShareController {
         String sid,
         String cardKind,
         boolean enabled,
+        long visitCount,
         String title,
         String description,
         String img,

@@ -4,6 +4,9 @@ import static run.halo.app.extension.index.IndexAttributeFactory.simpleAttribute
 
 import com.avrinbai.wechatshare.extension.WechatShareCard;
 import com.avrinbai.wechatshare.extension.WechatShareSettings;
+import com.avrinbai.wechatshare.extension.WechatShareStats;
+import com.avrinbai.wechatshare.WechatShareCardKind;
+import com.avrinbai.wechatshare.extension.WechatShareVisit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -26,16 +29,21 @@ public class ExtensionSchemeRegistry {
     public synchronized void ensureRegistered() {
         ensureWechatShareCard();
         ensureWechatShareSettings();
+        ensureWechatShareVisit();
+        ensureWechatShareStats();
     }
 
 
     public synchronized void prepareCardSchemeOnStartup() {
         unregisterIfPresent(WechatShareCard.class);
+        unregisterIfPresent(WechatShareVisit.class);
     }
 
     public synchronized void unregisterOnStop() {
         unregisterIfPresent(WechatShareCard.class);
         unregisterIfPresent(WechatShareSettings.class);
+        unregisterIfPresent(WechatShareVisit.class);
+        unregisterIfPresent(WechatShareStats.class);
     }
 
     private void ensureWechatShareCard() {
@@ -55,6 +63,47 @@ public class ExtensionSchemeRegistry {
         }
         schemeManager.register(WechatShareSettings.class);
         log.debug("Registered extension scheme: {}", WechatShareSettings.class.getSimpleName());
+    }
+
+    private void ensureWechatShareVisit() {
+        if (hasScheme(WechatShareVisit.class)) {
+            return;
+        }
+        schemeManager.register(WechatShareVisit.class, indexSpecs -> {
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.sid")
+                .setIndexFunc(simpleAttribute(WechatShareVisit.class, x ->
+                    x.getSpec() == null ? null : x.getSpec().getSid())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.visitedAt")
+                .setIndexFunc(simpleAttribute(WechatShareVisit.class, x -> {
+                    if (x.getSpec() == null || x.getSpec().getVisitedAt() == null) {
+                        return null;
+                    }
+                    return String.format("%020d", x.getSpec().getVisitedAt());
+                })));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.cardKind")
+                .setIndexFunc(simpleAttribute(WechatShareVisit.class, x -> {
+                    if (x.getSpec() == null) {
+                        return null;
+                    }
+                    var raw = x.getSpec().getCardKind();
+                    if (raw == null || raw.isBlank()) {
+                        return WechatShareCardKind.LINK;
+                    }
+                    return WechatShareCardKind.normalize(raw);
+                })));
+        });
+        log.debug("Registered extension scheme: {}", WechatShareVisit.class.getSimpleName());
+    }
+
+    private void ensureWechatShareStats() {
+        if (hasScheme(WechatShareStats.class)) {
+            return;
+        }
+        schemeManager.register(WechatShareStats.class);
+        log.debug("Registered extension scheme: {}", WechatShareStats.class.getSimpleName());
     }
 
     private boolean hasScheme(Class<? extends Extension> type) {

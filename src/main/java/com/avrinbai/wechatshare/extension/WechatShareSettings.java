@@ -39,5 +39,11 @@ public class WechatShareSettings extends AbstractExtension {
 
         @Schema(description = "二维码 PNG 上游接口（默认官方示例网关）")
         private String qrcodeApiBase;
+
+        @Schema(description = "实验功能：在访问明细中查询 IP 归属地（默认关闭）")
+        private Boolean experimentalIpLookupEnabled;
+
+        @Schema(description = "IP 归属地查询接口，默认 https://api.avrinbai.cn/api/tools/ip-location")
+        private String ipLookupApiBase;
     }
 }

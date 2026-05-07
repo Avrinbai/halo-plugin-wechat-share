@@ -133,6 +133,7 @@ public class WechatShareCardService {
             var spec = new WechatShareCard.Spec();
             spec.setSid(sid);
             applyKindFields(kind, spec, req);
+            spec.setVisitCount(0L);
             spec.setEnabled(Boolean.TRUE);
             card.setSpec(spec);
 

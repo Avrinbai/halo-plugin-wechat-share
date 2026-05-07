@@ -10,7 +10,6 @@ import {
   VEmpty,
   VLoading,
   VModal,
-  VPageHeader,
   VPagination,
   VSpace,
   VSwitch,
@@ -21,7 +20,6 @@ import WechatShareCardEditingModal, {
   type WechatShareCardForm,
   type WechatShareCardFormErrors,
 } from '@/components/WechatShareCardEditingModal.vue'
-import WechatShareSettingsPanel from '@/components/WechatShareSettingsPanel.vue'
 import { deleteData, getApiErrorMessage, getData, patchData, postData, putData } from '@/api/client'
 import { extractAttachmentUrl, thumbSrcForCardRow, type AttachmentLike } from '@/utils/attachmentUrl'
 import {
@@ -30,14 +28,10 @@ import {
   validateCoverUrl,
   validateRedirectUrl,
 } from '@/utils/urlSafety'
-import RiSettings3Line from '~icons/ri/settings-3-line'
-import RiShareForwardLine from '~icons/ri/share-forward-line'
-
 type WechatShareCardRow = {
   metadataName: string
   sid: string
   cardKind: CardKind | string
-  /** 服务端字段；缺省视为启用 */
   enabled?: boolean
   title: string
   description: string
@@ -56,6 +50,7 @@ type WechatShareCardRow = {
   shareUrl: string
   goUrl: string
   shareQrcodeDataUrl: string | null
+  visitCount?: number
 }
 
 const listLoading = ref(true)
@@ -117,9 +112,6 @@ const qrModalSrc = ref('')
 const qrModalKind = ref<CardKind>('link')
 
 const togglingEnabled = ref<string | null>(null)
-
-const settingsModalOpen = ref(false)
-const settingsPanelRef = ref<InstanceType<typeof WechatShareSettingsPanel> | null>(null)
 
 const form = reactive<WechatShareCardForm>({
   cardKind: 'link',
@@ -196,13 +188,6 @@ watch([searchKeyword, selectedCardKindFilter, selectedStatusFilter], () => {
   page.value = 1
 })
 
-function openSettingsModal() {
-  settingsModalOpen.value = true
-  nextTick(() => {
-    settingsPanelRef.value?.load?.()
-  })
-}
-
 function refreshPublicOrigin() {
   if (typeof window === 'undefined') {
     publicSiteUrl.value = ''
@@ -218,10 +203,14 @@ async function load() {
     const rows = await getData<WechatShareCardRow[]>('/cards', {
       params: { _t: Date.now() },
     })
-    cards.value = rows.map((r) => ({
-      ...r,
-      enabled: r.enabled !== false,
-    }))
+    cards.value = rows.map((r) => {
+      const row = r as WechatShareCardRow
+      return {
+        ...row,
+        enabled: row.enabled !== false,
+        visitCount: row.visitCount ?? 0,
+      }
+    })
   } catch (e) {
     Dialog.error({
       title: '加载失败',
@@ -744,7 +733,6 @@ function removeCard(row: WechatShareCardRow) {
     title: '确认删除',
     description: `删除卡片「${row.title}」（sid=${row.sid}）？该操作不可恢复。`,
     showCancel: true,
-    /** 返回 Promise，确保控制台 Dialog 会等待异步完成后再关闭，从而触发列表 reload */
     onConfirm: () => runDeleteCard(row),
   })
 }
@@ -791,34 +779,7 @@ onMounted(() => {
     </div>
   </VModal>
 
-  <VModal
-    :visible="settingsModalOpen"
-    title="插件配置"
-    :width="720"
-    :body-class="[':uno: !p-0']"
-    @close="settingsModalOpen = false"
-  >
-    <div class="settings-modal-body">
-      <WechatShareSettingsPanel ref="settingsPanelRef" />
-    </div>
-  </VModal>
-
-  <VPageHeader title="微信分享卡片">
-    <template #icon>
-      <RiShareForwardLine />
-    </template>
-    <template #actions>
-      <VButton type="secondary" @click="openSettingsModal">
-        <template #icon>
-          <RiSettings3Line class=":uno: size-full" />
-        </template>
-        插件配置
-      </VButton>
-    </template>
-  </VPageHeader>
-
-  <div class="wechat-share-page :uno: p-4 pt-2">
-    <!-- 与 link-submit SubmitList 一致：body 不要用 flex-col + items-stretch，否则唯一子块会被纵向拉满视口，表格行被撑得极高 -->
+  <div class="wechat-share-page :uno:  pt-2">
     <VCard class="wechat-share-main-card" :body-class="[':uno: !p-0']">
       <template #header>
         <div class=":uno: block w-full bg-gray-50 px-4 py-3">
@@ -882,17 +843,17 @@ onMounted(() => {
         <VEmpty message="请调整类型、状态筛选，或在搜索框输入后按回车确认关键词" title="无匹配结果" />
       </Transition>
       <Transition v-else-if="cards.length && filteredCards.length" appear name="fade">
-        <!-- 表格布局样式放在 scoped CSS，避免生产构建 Uno 未生成 :uno: 工具类导致错位（本地 dev 全量 CSS 可能仍正常） -->
         <div class="ws-cards-scroll">
           <table class="ws-cards-table">
             <colgroup>
-              <col style="width: 8%" />
-              <col style="width: 20%" />
-              <col style="width: 16%" />
-              <col style="width: 12%" />
+              <col style="width: 7%" />
+              <col style="width: 18%" />
               <col style="width: 14%" />
-              <col style="width: 14%" />
-              <col style="width: 25%" />
+              <col style="width: 10%" />
+              <col style="width: 10%" />
+              <col style="width: 11%" />
+              <col style="width: 11%" />
+              <col style="width: 22%" />
             </colgroup>
             <thead class="ws-cards-thead">
               <tr>
@@ -901,6 +862,7 @@ onMounted(() => {
                 <th class="ws-cards-th">摘要</th>
                 <th class="ws-cards-th">类型</th>
                 <th class="ws-cards-th">状态</th>
+                <th class="ws-cards-th">访问量</th>
                 <th class="ws-cards-th">二维码</th>
                 <th class="ws-cards-th">操作</th>
               </tr>
@@ -940,13 +902,15 @@ onMounted(() => {
                 </td>
                 <td class="ws-cards-td">
                   <div class="status-switch-wrap">
-                    <!-- 不传 size：避免控制台 Uno 生成 [size~=sm]{width:24rem…} 命中原生 size 属性，把整行撑爆 -->
                     <VSwitch
                       :model-value="rowEnabled(row)"
                       :disabled="togglingEnabled === row.metadataName"
                       @update:model-value="(v) => patchCardEnabled(row, !!v)"
                     />
                   </div>
+                </td>
+                <td class="ws-cards-td">
+                  <span class="ws-visit-count">{{ row.visitCount ?? 0 }}</span>
                 </td>
                 <td class="ws-cards-td">
                   <div v-if="row.shareQrcodeDataUrl" class="qr-cell">
@@ -980,13 +944,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.settings-modal-body {
-  max-height: min(78vh, 640px);
-  overflow: auto;
-  margin: 0;
-  padding: 0;
-}
-
 .wechat-share-main-card {
   box-shadow: 0 4px 18px rgb(15 23 42 / 0.06);
 }
@@ -1034,7 +991,7 @@ onMounted(() => {
   width: 100%;
   height: auto !important;
   max-height: none !important;
-  min-width: 56rem;
+  min-width: 62rem;
   border-collapse: collapse;
 }
 
@@ -1059,6 +1016,20 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   text-align: left;
   vertical-align: middle;
+}
+
+.ws-cards-th--num {
+  text-align: right;
+}
+
+.ws-cards-td--num {
+  text-align: right;
+}
+
+.ws-visit-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: rgb(63 63 70);
 }
 
 .ws-card-row {

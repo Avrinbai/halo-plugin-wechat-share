@@ -2,6 +2,10 @@ package com.avrinbai.wechatshare;
 
 import com.avrinbai.wechatshare.extension.WechatShareCard;
 import com.avrinbai.wechatshare.extension.WechatShareSettings;
+import com.avrinbai.wechatshare.extension.WechatShareStats;
+import com.avrinbai.wechatshare.extension.WechatShareVisit;
+import com.avrinbai.wechatshare.service.WechatShareStatsService;
+import com.avrinbai.wechatshare.service.WechatShareVisitCardKindBackfill;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -19,15 +23,18 @@ public class WechatSharePlugin extends BasePlugin {
 
     private final ExtensionSchemeRegistry extensionSchemeRegistry;
     private final ReactiveExtensionClient extensionClient;
+    private final WechatShareVisitCardKindBackfill visitCardKindBackfill;
 
     public WechatSharePlugin(
         PluginContext pluginContext,
         ExtensionSchemeRegistry extensionSchemeRegistry,
-        ReactiveExtensionClient extensionClient
+        ReactiveExtensionClient extensionClient,
+        WechatShareVisitCardKindBackfill visitCardKindBackfill
     ) {
         super(pluginContext);
         this.extensionSchemeRegistry = extensionSchemeRegistry;
         this.extensionClient = extensionClient;
+        this.visitCardKindBackfill = visitCardKindBackfill;
     }
 
     @Override
@@ -35,6 +42,7 @@ public class WechatSharePlugin extends BasePlugin {
         extensionSchemeRegistry.prepareCardSchemeOnStartup();
         extensionSchemeRegistry.ensureRegistered();
         warmUpExtensionIndices();
+        visitCardKindBackfill.runAsyncAfterStart();
         log.info("Plugin wechat-share started");
     }
 
@@ -52,6 +60,12 @@ public class WechatSharePlugin extends BasePlugin {
                 .collectList()
                 .block();
             extensionClient.fetch(WechatShareSettings.class, SETTINGS_METADATA_NAME).blockOptional();
+            extensionClient
+                .listAll(WechatShareVisit.class, ListOptions.builder().build(), Sort.unsorted())
+                .take(1)
+                .collectList()
+                .block();
+            extensionClient.fetch(WechatShareStats.class, WechatShareStatsService.STATS_METADATA_NAME).blockOptional();
         } catch (Exception ex) {
             log.warn("Extension index warm-up skipped: {}", ex.toString());
         }

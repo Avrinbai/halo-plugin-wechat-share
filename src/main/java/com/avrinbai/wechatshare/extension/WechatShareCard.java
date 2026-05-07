@@ -82,6 +82,9 @@ public class WechatShareCard extends AbstractExtension {
         @Schema(description = "二维码图片 MIME，例如 image/png")
         private String shareQrcodeMimeType;
 
+        @Schema(description = "累计访问次数（落地页与跳转均计入；异步递增）")
+        private Long visitCount;
+
         
         private Boolean enabled;
     }

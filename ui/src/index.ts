@@ -35,7 +35,8 @@ export default definePlugin({
           {
             path: 'cards',
             name: 'WechatShareCards',
-            component: () => import(/* webpackChunkName: "WechatShareCardsView" */ './views/WechatShareCardsView.vue'),
+            component: () =>
+              import(/* webpackChunkName: "WechatShareConsoleView" */ './views/WechatShareConsoleView.vue'),
             meta: {
               title: '自定义微信分享卡片',
               searchable: true,

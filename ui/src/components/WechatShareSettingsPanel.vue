@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { Dialog, Toast, VButton, VCard } from '@halo-dev/components'
+import { Dialog, Toast, VButton, VCard, VSwitch } from '@halo-dev/components'
 import { getApiErrorMessage, getData, putData } from '@/api/client'
 
 type WechatShareSettingsExt = {
@@ -12,6 +12,8 @@ type WechatShareSettingsExt = {
     wxAppSecret?: string
     publicBasePath?: string
     qrcodeApiBase?: string
+    experimentalIpLookupEnabled?: boolean
+    ipLookupApiBase?: string
   }
 }
 
@@ -24,6 +26,8 @@ const form = reactive({
   wxAppSecret: '',
   publicBasePath: '',
   qrcodeApiBase: '',
+  experimentalIpLookupEnabled: false,
+  ipLookupApiBase: '',
 })
 
 function applyFromModel(m: WechatShareSettingsExt) {
@@ -32,6 +36,8 @@ function applyFromModel(m: WechatShareSettingsExt) {
   form.wxAppSecret = s.wxAppSecret ?? ''
   form.publicBasePath = s.publicBasePath ?? ''
   form.qrcodeApiBase = s.qrcodeApiBase ?? ''
+  form.experimentalIpLookupEnabled = Boolean(s.experimentalIpLookupEnabled)
+  form.ipLookupApiBase = s.ipLookupApiBase ?? ''
 }
 
 async function load() {
@@ -62,12 +68,18 @@ async function save() {
         wxAppSecret: form.wxAppSecret.trim(),
         publicBasePath: form.publicBasePath.trim(),
         qrcodeApiBase: form.qrcodeApiBase.trim(),
+        experimentalIpLookupEnabled: Boolean(form.experimentalIpLookupEnabled),
+        ipLookupApiBase: form.ipLookupApiBase.trim(),
       },
     }
     const saved = await putData<WechatShareSettingsExt>('/settings', payload)
     model.value = saved
     applyFromModel(saved)
     Toast.success('设置已保存')
+    /** 延迟刷新，便于 Toast 显示；使卡片列表、数据看板等重新拉取配置（如实验开关、二维码上游等） */
+    window.setTimeout(() => {
+      window.location.reload()
+    }, 450)
   } catch (e) {
     Dialog.error({
       title: '保存失败',
@@ -128,6 +140,33 @@ defineExpose({ load })
           <div class="settings-field-label">二维码上游接口</div>
           <input v-model="form.qrcodeApiBase" type="text" class="settings-input" placeholder="https://…" />
           <p class="settings-hint">用于分享卡片二维码生成，保持默认即可。</p>
+        </div>
+
+        <div class="settings-divider settings-divider--section" />
+
+        <h4 class="settings-subtitle">实验功能</h4>
+        <p class="settings-desc">
+          以下能力属于实验性功能，请自行评估隐私；默认关闭。
+        </p>
+
+        <div class="settings-field">
+          <div class="settings-field-label">访问明细 · IP 归属地查询</div>
+          <div class=":uno: flex flex-wrap items-center gap-3">
+            <VSwitch v-model="form.experimentalIpLookupEnabled" />
+            <span class="settings-hint :uno: flex-1 min-w-[12rem]">
+              开启后，数据看板访问明细可点击「查询归属」。
+            </span>
+          </div>
+        </div>
+
+        <div class="settings-field">
+          <div class="settings-field-label">IP 归属查询接口</div>
+          <input
+            v-model="form.ipLookupApiBase"
+            type="text"
+            class="settings-input"
+            placeholder="https://api.avrinbai.cn/api/tools/ip-location"
+          />
         </div>
       </div>
     </div>

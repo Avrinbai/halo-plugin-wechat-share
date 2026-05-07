@@ -13,7 +13,6 @@ export type FileNoteFormItem = {
   url: string
 }
 
-/** 文件「相关说明」预览行（与前台 appendFileNotesSection 一致） */
 export type FileNotePreviewRow =
   | { mode: 'link'; title: string; detail: string; url: string }
   | { mode: 'text'; title: string; detail: string }
@@ -28,13 +27,11 @@ export type WechatShareCardForm = {
   displayName: string
   optionalLinkLabel: string
   optionalLinkUrl: string
-  /** file / image 卡片「相关说明」 */
   fileNotes: FileNoteFormItem[]
   contactInfo: string
   videoTitle: string
   videoGuideText: string
   videoExtraLink: string
-  /** 视频附加链接胶囊展示文案 */
   videoExtraLinkLabel: string
 }
 
@@ -66,7 +63,6 @@ const modalTitle = computed(() => (mode.value === 'edit' ? '编辑分享卡片' 
 
 const submitLabel = computed(() => (mode.value === 'edit' ? '保存' : '创建'))
 
-/** 文件卡片：与前台 primary 一致（displayName 优先，否则 title） */
 const filePreviewPrimary = computed(() => {
   const dn = form.value.displayName.trim()
   const t = form.value.title.trim()
@@ -74,7 +70,6 @@ const filePreviewPrimary = computed(() => {
   return p || '文件下载'
 })
 
-/** 文件卡片：与前台 secondary 一致（两者不同才显示副行，副行为页面标题） */
 const filePreviewSecondary = computed(() => {
   const dn = form.value.displayName.trim()
   const t = form.value.title.trim()
@@ -84,7 +79,6 @@ const filePreviewSecondary = computed(() => {
   return ''
 })
 
-/** 文件卡片表单：合并「文件名称 / 页面标题 / 卡片标题」，读写同步 title + displayName */
 const fileCardHeadline = computed({
   get() {
     const d = form.value.displayName.trim()
@@ -98,7 +92,6 @@ const fileCardHeadline = computed({
   },
 })
 
-/** 图片卡片：合并「页面标题 / 图片名称 / 卡片标题」，读写同步 title + displayName */
 const imageCardHeadline = computed({
   get() {
     const d = form.value.displayName.trim()
@@ -112,7 +105,6 @@ const imageCardHeadline = computed({
   },
 })
 
-/** 音频卡片：合并「页面标题 / 音频名称 / 卡片标题」，读写同步 title + displayName */
 const audioCardHeadline = computed({
   get() {
     const d = form.value.displayName.trim()
@@ -131,7 +123,6 @@ const audioPreviewArtist = computed(() => {
   return d || '纯音乐，请欣赏'
 })
 
-/** 文件 / 图片「相关说明」预览：与前台 appendKindNotesSection 过滤逻辑一致 */
 const cardNotesPreviewRows = computed((): FileNotePreviewRow[] => {
   if (form.value.cardKind !== 'file' && form.value.cardKind !== 'image') return []
   const out: FileNotePreviewRow[] = []
@@ -155,7 +146,6 @@ const cardNotesPreviewRows = computed((): FileNotePreviewRow[] => {
   return out
 })
 
-/** 视频：合并「页面标题 / 视频标题 / 卡片标题」，读写同步 title + videoTitle */
 const videoCardHeadline = computed({
   get() {
     const vt = form.value.videoTitle.trim()
@@ -202,10 +192,8 @@ const previewSub = computed(() => {
   return form.value.description.trim()
 })
 
-/** 与前台视频简介一致（videoGuideText） */
 const videoPreviewCaption = computed(() => form.value.videoGuideText.trim())
 
-/** 依赖 props.form.img，确保选附件后预览随地址更新，并弱化浏览器对同 URL 的强缓存 */
 const coverPreviewSrc = computed(() => {
   const raw = props.form.img.trim()
   if (!raw) return ''
@@ -225,11 +213,9 @@ const vvPosterStyle = computed(() => {
 
 watch(visible, (v) => {
   if (v && mode.value === 'create') {
-    // 默认保持 link；避免从编辑返回残留
   }
 })
 
-/** 与列表页 FilterDropdown 选项结构一致（无「全部」，必选具体类型） */
 const cardKindEditorItems: { label: string; value: CardKind }[] = [
   { label: '链接', value: 'link' },
   { label: '图片', value: 'image' },
@@ -247,7 +233,6 @@ function onCardKindPicked(v: string | number | boolean | undefined) {
 }
 
 function onKindChange() {
-  // 切换类型时清理容易误解的字段（保留标题）
   if (form.value.cardKind === 'link') {
     form.value.mediaUrl = ''
     form.value.displayName = ''
@@ -612,7 +597,6 @@ function removeFileNote(index: number) {
         <div class="preview">
           <div class="preview__device" :class="'preview__device--' + form.cardKind">
             <div class="preview__body">
-              <!-- 图片：对齐前台 WechatSharePageRenderer appendImageShell（body-im + in-* 相关说明） -->
               <div v-if="form.cardKind === 'image'" class="pv-img-shell">
                 <div class="pv-img-stack">
                   <div class="pv-img-card">
@@ -662,7 +646,6 @@ function removeFileNote(index: number) {
                 </div>
               </div>
 
-              <!-- 音频：与前台 body-au 黑胶页一致（示意） -->
               <div v-else-if="form.cardKind === 'audio'" class="pv-au">
                 <div class="pv-au-shell">
                   <div class="pv-au-stage">
@@ -699,7 +682,6 @@ function removeFileNote(index: number) {
                 </div>
               </div>
 
-              <!-- 视频：与前台抖音式沉浸条一致（示意） -->
               <div v-else-if="form.cardKind === 'video'" class="pv-vv">
                   <div class="pv-vv-shell">
                   <div class="pv-vv-video" :key="coverPreviewSrc || 'vv-poster'" :style="vvPosterStyle">
@@ -725,7 +707,6 @@ function removeFileNote(index: number) {
                 </div>
               </div>
 
-              <!-- 文件：与前台 fp-* 落地页一致（示意） -->
               <div v-else-if="form.cardKind === 'file'" class="pv-fp">
                 <div class="pv-fp-container">
                   <div class="pv-fp-card">
@@ -885,9 +866,6 @@ function removeFileNote(index: number) {
   text-align: center;
 }
 
-/* —— 预览：与前台落地页结构对齐 —— */
-
-/* 图片预览：对齐前台 wechat-share/landing/image.css（img-* / in-*） */
 .pv-img-shell {
   color: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;

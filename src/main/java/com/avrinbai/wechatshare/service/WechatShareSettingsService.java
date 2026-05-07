@@ -123,6 +123,14 @@ public class WechatShareSettingsService {
         } else {
             spec.setQrcodeApiBase(spec.getQrcodeApiBase().trim());
         }
+        if (spec.getExperimentalIpLookupEnabled() == null) {
+            spec.setExperimentalIpLookupEnabled(Boolean.FALSE);
+        }
+        if (spec.getIpLookupApiBase() == null || spec.getIpLookupApiBase().isBlank()) {
+            spec.setIpLookupApiBase("https://api.avrinbai.cn/api/tools/ip-location");
+        } else {
+            spec.setIpLookupApiBase(spec.getIpLookupApiBase().trim());
+        }
         if (spec.getWxAppId() != null) {
             spec.setWxAppId(spec.getWxAppId().trim());
         }
