@@ -1,5 +1,5 @@
 :root{--fp-bg:#f6f7f9;--fp-card:#ffffff;--fp-text:#1a1a1a;--fp-sub:#6b7280;--fp-primary:#2563eb;--fp-border:#e5e7eb;--fp-radius:16px;}
-body.body-f{margin:0;min-height:100vh;min-height:100dvh;color:var(--fp-text);background:var(--fp-bg);-webkit-font-smoothing:antialiased;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;}
+body.body-f{margin:0;min-height:100vh;min-height:100dvh;color:var(--fp-text);background:var(--fp-bg);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{-webkit-text-size-adjust:100%;}
 body.body-f img{max-width:100%;vertical-align:middle;}

@@ -29,6 +29,11 @@ public final class ShareLandingCss {
         sb.append(css("shared-banner"));
     }
 
+    /** HarmonyOS Sans（与 theme-acard HarmonySanc 同源）+ 全站字距；须在各类页面样式之前注入。 */
+    public static void appendHarmonySans(StringBuilder sb) {
+        sb.append(css("harmony-sans"));
+    }
+
     private static String css(String resourceStem) {
         return CACHE.computeIfAbsent(resourceStem, ShareLandingCss::read);
     }

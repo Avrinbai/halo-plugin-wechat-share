@@ -1,0 +1,123 @@
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.a.woff2') format('woff2');
+  unicode-range: U+9aa2-ffe5;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.b.woff2') format('woff2');
+  unicode-range: U+8983-9aa0;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.c.woff2') format('woff2');
+  unicode-range: U+78f2-897b;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.d.woff2') format('woff2');
+  unicode-range: U+646d-78d9;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.e.woff2') format('woff2');
+  unicode-range: U+30e0-6445;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.f.woff2') format('woff2');
+  unicode-range: U+101-30df;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.g.woff2') format('woff2');
+  unicode-range: U+9aa8, U+9ab8, U+9ad3, U+9ad8, U+9b03, U+9b3c, U+9b41-9b42, U+9b44, U+9b4f, U+9b54, U+9c7c, U+9c81, U+9c8d, U+9c9c, U+9ca4, U+9cb8, U+9cc3, U+9cd6, U+9cde, U+9e1f, U+9e21, U+9e23, U+9e25-9e26, U+9e2d, U+9e2f, U+9e33, U+9e35, U+9e3d, U+9e3f, U+9e43, U+9e45, U+9e4a, U+9e4f, U+9e64, U+9e70, U+9e7f, U+9e93, U+9ea6, U+9ebb, U+9ec4, U+9ecd-9ece, U+9ed1, U+9ed4, U+9ed8, U+9f0e, U+9f13, U+9f20, U+9f3b, U+9f50, U+9f7f, U+9f84, U+9f8b, U+9f99-9f9a, U+9f9f, U+ff01, U+ff08-ff09, U+ff0c, U+ff1a-ff1b, U+ff1f;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.h.woff2') format('woff2');
+  unicode-range: U+975b, U+975e, U+9760-9762, U+9769, U+9773-9774, U+9776, U+978b, U+978d, U+9798, U+97a0, U+97ad, U+97e6-97e7, U+97e9, U+97ed, U+97f3, U+97f5-97f6, U+9875-9877, U+9879-987b, U+987d-987f, U+9881-9882, U+9884-9888, U+988a, U+9890-9891, U+9893, U+9896-9898, U+989c-989d, U+98a0, U+98a4, U+98a7, U+98ce, U+98d8, U+98de-98df, U+9910, U+9965, U+996d-9972, U+9975-9976, U+997a, U+997c, U+997f, U+9981, U+9985-9986, U+9988, U+998b, U+998f, U+9992, U+9996, U+9999, U+9a6c-9a71, U+9a73-9a74, U+9a76, U+9a79, U+9a7b-9a7c, U+9a7e, U+9a82, U+9a84, U+9a86-9a87, U+9a8b-9a8c, U+9a8f, U+9a91, U+9a97, U+9a9a, U+9aa1, U+9aa4;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.i.woff2') format('woff2');
+  unicode-range: U+9570, U+9576, U+957f, U+95e8, U+95ea, U+95ed-95f0, U+95f2, U+95f4, U+95f7-95fb, U+95fd, U+9600-9602, U+9605, U+9609, U+960e, U+9610-9611, U+9614, U+961c, U+961f, U+962e, U+9632-9636, U+963b, U+963f-9640, U+9644-9648, U+964b-964d, U+9650, U+9655, U+965b, U+9661-9662, U+9664, U+9668-966a, U+9675-9677, U+9685-9686, U+968b, U+968f-9690, U+9694, U+9698-9699, U+969c, U+96a7, U+96b6, U+96be, U+96c0-96c1, U+96c4-96c7, U+96cc-96cd, U+96cf, U+96d5, U+96e8, U+96ea, U+96f6-96f7, U+96f9, U+96fe, U+9700, U+9704, U+9707, U+9709, U+970d, U+9713, U+9716, U+971c, U+971e, U+9732, U+9738-9739, U+9752, U+9756, U+9759;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.j.woff2') format('woff2');
+  unicode-range: U+9179, U+917f, U+9187, U+9189, U+918b, U+918d, U+9190, U+9192, U+919a-919b, U+91ba, U+91c7, U+91c9-91ca, U+91cc-91cf, U+91d1, U+91dc, U+9274, U+93d6, U+9488-9489, U+948e, U+9492-9493, U+9497, U+9499, U+949d-94a3, U+94a5-94a9, U+94ae, U+94b1, U+94b3, U+94b5, U+94bb, U+94be, U+94c0-94c3, U+94c5-94c6, U+94dc-94dd, U+94e1, U+94e3, U+94ec-94ed, U+94f0-94f2, U+94f6, U+94f8, U+94fa, U+94fe, U+9500-9501, U+9504-9505, U+9508, U+950b-950c, U+9510-9511, U+9517, U+9519-951a, U+9521, U+9523-9526, U+9528, U+952d-9530, U+9539, U+953b, U+9540-9541, U+9547, U+954a, U+954d, U+9550-9551, U+955c, U+9563, U+956d;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.k.woff2') format('woff2');
+  unicode-range: U+9001-9003, U+9005-9006, U+9009-900a, U+900d, U+900f-9012, U+9014, U+9017, U+901a-901b, U+901d-9022, U+902e, U+9038, U+903b-903c, U+903e, U+9041-9042, U+9044, U+9047, U+904d, U+904f-9053, U+9057, U+905b, U+9062-9063, U+9065, U+9068, U+906d-906e, U+9075, U+907d, U+907f-9080, U+9082-9083, U+908b, U+9091, U+9093, U+9099, U+90a2-90a3, U+90a6, U+90aa, U+90ae-90af, U+90b1, U+90b5, U+90b8-90b9, U+90bb, U+90c1, U+90ca, U+90ce, U+90d1, U+90dd, U+90e1, U+90e7-90e8, U+90ed, U+90f4, U+90f8, U+90fd, U+9102, U+9119, U+9149, U+914b-914d, U+9152, U+9157, U+915a, U+915d-915e, U+9161, U+9163, U+9165, U+916a, U+916c, U+916e, U+9171, U+9175-9178;
+}
+
+@font-face {
+  font-family: 'HarmonyOS_Regular';
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+  src: url('https://s1.hdslb.com/bfs/static/jinkela/long/font/HarmonyOS_Regular.a1.woff2') format('woff2');
+  unicode-range: U+21-7e, U+a4, U+a7-a8, U+b0-b1, U+b7;
+}
+
+:root {
+  --ws-share-font-sans: HarmonyOS_Regular, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+}
+
+html {
+  font-family: var(--ws-share-font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--ws-share-font-sans) !important;
+  letter-spacing: 0.015em;
+  font-optical-sizing: auto;
+}

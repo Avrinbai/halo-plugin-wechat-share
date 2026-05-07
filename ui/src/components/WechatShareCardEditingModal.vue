@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, toRefs, watch } from 'vue'
 import { VButton, VModal } from '@halo-dev/components'
-import RiArrowDownSLine from '~icons/ri/arrow-down-s-line'
+import WechatShareFilterLikeSelect from '@/components/WechatShareFilterLikeSelect.vue'
 import { appendDisplayCacheBust } from '@/utils/attachmentUrl'
 
 export type CardKind = 'link' | 'image' | 'audio' | 'video' | 'file'
@@ -229,6 +229,23 @@ watch(visible, (v) => {
   }
 })
 
+/** 与列表页 FilterDropdown 选项结构一致（无「全部」，必选具体类型） */
+const cardKindEditorItems: { label: string; value: CardKind }[] = [
+  { label: '链接', value: 'link' },
+  { label: '图片', value: 'image' },
+  { label: '音频', value: 'audio' },
+  { label: '视频', value: 'video' },
+  { label: '文件', value: 'file' },
+]
+
+function onCardKindPicked(v: string | number | boolean | undefined) {
+  const s = v == null ? 'link' : String(v)
+  const k = (['link', 'image', 'audio', 'video', 'file'].includes(s) ? s : 'link') as CardKind
+  if (k === form.value.cardKind) return
+  form.value.cardKind = k
+  onKindChange()
+}
+
 function onKindChange() {
   // 切换类型时清理容易误解的字段（保留标题）
   if (form.value.cardKind === 'link') {
@@ -268,23 +285,18 @@ function removeFileNote(index: number) {
         </div>
 
         <div class="plugin-field">
-          <label class="plugin-label" for="wechat-share-kind">卡片类型</label>
-          <div class="plugin-select-wrap">
-            <select
-              id="wechat-share-kind"
-              v-model="form.cardKind"
-              class="plugin-control plugin-select"
-              :disabled="mode === 'edit'"
-              @change="onKindChange"
-            >
-              <option value="link">链接</option>
-              <option value="image">图片</option>
-              <option value="audio">音频</option>
-              <option value="video">视频</option>
-              <option value="file">文件</option>
-            </select>
-            <RiArrowDownSLine class="plugin-select-ico" aria-hidden="true" />
-          </div>
+          <label class="plugin-label" for="ws-card-kind">卡片类型</label>
+          <WechatShareFilterLikeSelect
+            :model-value="form.cardKind"
+            :items="cardKindEditorItems"
+            field-id="ws-card-kind"
+            aria-label="卡片类型"
+            :disabled="mode === 'edit'"
+            @update:model-value="onCardKindPicked"
+          />
+          <p v-if="mode === 'edit'" class="plugin-hint plugin-hint--tight">
+            编辑模式下不可更改类型，避免与已生成分享数据不一致。
+          </p>
         </div>
 
         <!-- LINK -->
@@ -870,6 +882,7 @@ function removeFileNote(index: number) {
   font-size: 0.75rem;
   line-height: 1.45;
   color: #94a3b8;
+  text-align: center;
 }
 
 /* —— 预览：与前台落地页结构对齐 —— */
@@ -1649,7 +1662,6 @@ function removeFileNote(index: number) {
 
 .plugin-note-idx {
   font-size: 0.75rem;
-  font-weight: 600;
   color: #64748b;
 }
 
@@ -1677,6 +1689,17 @@ function removeFileNote(index: number) {
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
+}
+
+.plugin-field-help {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.plugin-field-help--after {
+  margin: 0.5rem 0 0;
 }
 
 .plugin-hint {

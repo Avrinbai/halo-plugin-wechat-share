@@ -8,16 +8,17 @@ import java.util.HexFormat;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** 落地页 CSS 位于 classpath；变更 {@code wechat-share/landing/*.css} 后需同步更新下方 SHA-256 期望值。 */
+/** 落地页 CSS 位于 classpath（含 {@code harmony-sans.css}）；变更 {@code wechat-share/landing/*.css} 后需同步更新下方 SHA-256 期望值。 */
 class ShareLandingCssSnapshotTest {
 
     private static final Map<String, String> EXPECTED_SHA256 = Map.ofEntries(
-        Map.entry("audio.css", "42e291f560b405367b2656f2598d03df81826f00a2fd65e2827d9520876f75f6"),
-        Map.entry("file.css", "592fba695f4324af072f1a98e9bb40381658792287ff8c6608c8a12a2bf0c288"),
-        Map.entry("image.css", "17a2e8b79bbf8de31f7f1c8116b07a73e2d8ac3b467d689d6fe7a9b736947c6e"),
-        Map.entry("link.css", "56a1581231867510c419b5b06ece2cb90ea96cace515bb64b51b5d82e75e25cc"),
-        Map.entry("shared-banner.css", "2caa0c53db18ecf1bf99e49c456c5f4765f654b07020d117d1823935345f22da"),
-        Map.entry("video.css", "d5f59ce8a484d4f39520e4966d3e19b1264cdc841850b2d9f3731fdb4a20319b")
+        Map.entry("audio.css", "f5c3062ec242bf133fc4f8b235fe0418cb672298bf24896ae9b802f141b1cca0"),
+        Map.entry("file.css", "1a64ce82f20e9eb8cef7705a309b3642670ddec339b26e698c023a9c0e7292eb"),
+        Map.entry("harmony-sans.css", "4dc6a72ca33851971426b53b1082df7419f0e9db69db2919ef9575f2668124a9"),
+        Map.entry("image.css", "b103a53ecacc4a594f6d355aa383303fc669e3a7956e47a6122895e14695b0cb"),
+        Map.entry("link.css", "f2e92f266a51883b6cf9cc92b0166085cef43677e5ef72b2d820db97500d0378"),
+        Map.entry("shared-banner.css", "8397e255cb5ab3e3d038e3f4c51a7be1d6ef56dadc7df751ec2b4eae3dd7e6e4"),
+        Map.entry("video.css", "13a414c3ce2bf931dc88f8c0562f1c37f9fd746202c93d824ab0c1a4b8871778")
     );
 
     @Test

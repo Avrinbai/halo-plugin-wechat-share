@@ -100,6 +100,11 @@ public class WechatShareCard extends AbstractExtension {
 
         @Schema(description = "二维码图片 MIME，例如 image/png")
         private String shareQrcodeMimeType;
+
+        /**
+         * false 时前台 /share、/go 拒绝访问；null 或 true 为启用（兼容旧数据）。
+         */
+        private Boolean enabled;
     }
 
     @Data

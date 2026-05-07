@@ -2,6 +2,7 @@ package com.avrinbai.wechatshare.api;
 
 import com.avrinbai.wechatshare.WechatShareConstants;
 import com.avrinbai.wechatshare.WechatShareCardKind;
+import com.avrinbai.wechatshare.WechatShareCardStates;
 import com.avrinbai.wechatshare.extension.WechatShareCard;
 import com.avrinbai.wechatshare.extension.WechatShareSettings;
 import com.avrinbai.wechatshare.service.WechatShareCardService;
@@ -14,6 +15,7 @@ import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -51,6 +53,21 @@ public class AdminWechatShareController {
             return Envelope.error(ex.getMessage());
         } catch (Exception ex) {
             return Envelope.error("创建失败，请稍后重试");
+        }
+    }
+
+    @PatchMapping(path = "/cards/{metadataName}/enabled", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Envelope<CardDto> patchEnabled(
+        @PathVariable("metadataName") String metadataName,
+        @RequestBody EnabledPatch body
+    ) {
+        try {
+            var card = cardService.setEnabled(metadataName, body.enabled());
+            return Envelope.ok(toCardDto(card, resolveLinkContext()));
+        } catch (IllegalArgumentException ex) {
+            return Envelope.error(ex.getMessage());
+        } catch (Exception ex) {
+            return Envelope.error("更新状态失败，请稍后重试");
         }
     }
 
@@ -134,11 +151,13 @@ public class AdminWechatShareController {
         }
 
         var kind = WechatShareCardKind.normalize(spec.getCardKind());
+        var enabled = WechatShareCardStates.isEnabled(card);
 
         return new CardDto(
             card.getMetadata().getName(),
             sid,
             kind,
+            enabled,
             spec.getTitle(),
             spec.getDescription(),
             spec.getImg(),
@@ -189,6 +208,7 @@ public class AdminWechatShareController {
         String metadataName,
         String sid,
         String cardKind,
+        boolean enabled,
         String title,
         String description,
         String img,
@@ -214,4 +234,8 @@ public class AdminWechatShareController {
 
     public record ShareQrPayload(String mimeType, String base64) {
     }
+}
+
+/** PATCH /cards/{name}/enabled 请求体 */
+record EnabledPatch(boolean enabled) {
 }

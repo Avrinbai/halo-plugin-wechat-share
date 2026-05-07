@@ -26,7 +26,7 @@ public class WechatSharePageRenderer {
     }
 
     /**
-     * @param showShareHint {@code false} 当打开带 {@code hint=0} 的分享落地页时隐藏右上角分享提示（图片/音频/视频/文件分享回流）。
+     * @param showShareHint 
      */
     public String render(
         WechatShareCard card,
@@ -63,6 +63,7 @@ public class WechatSharePageRenderer {
         }
         sb.append("\">\n");
         sb.append("<title>").append(HtmlEscapes.text(displayTitle)).append("</title>\n");
+        sb.append("<link rel=\"preconnect\" href=\"https://s1.hdslb.com\" crossorigin>\n");
         sb.append("<style>\n");
         appendStylesForKind(sb, kind);
         sb.append("</style></head><body");
@@ -161,7 +162,7 @@ public class WechatSharePageRenderer {
         }
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"note\">右上角分享至朋友或朋友圈封装为卡片</p>");
+            sb.append("<p class=\"note\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
         }
         sb.append("</main></div>\n");
     }
@@ -188,7 +189,7 @@ public class WechatSharePageRenderer {
         appendContactModern(sb, spec, "img");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"img-foot\">右上角分享至朋友或朋友圈封装为卡片</p>");
+            sb.append("<p class=\"img-foot\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
         }
         sb.append("</div></div>");
         appendKindNotesSection(sb, spec, "in");
@@ -206,7 +207,15 @@ public class WechatSharePageRenderer {
         var headline = headlineRaw.isBlank() ? "未命名曲目" : headlineRaw;
         var artistLine = intro.isBlank() ? "纯音乐，请欣赏" : intro;
 
-        sb.append("<div class=\"au-shell\"><div class=\"au-inner\">");
+        sb.append("<div class=\"au-shell\">");
+        if (!cover.isBlank()) {
+            sb.append("<div class=\"au-bg\" aria-hidden=\"true\"><img class=\"au-bg__img\" src=\"")
+                .append(HtmlEscapes.text(cover))
+                .append("\" alt=\"\"/></div>");
+        } else {
+            sb.append("<div class=\"au-bg au-bg--fallback\" aria-hidden=\"true\"></div>");
+        }
+        sb.append("<div class=\"au-inner\">");
 
         if (!audioUrl.isBlank()) {
             sb.append("<div class=\"au-root\" data-ap=\"").append(HtmlEscapes.text(sid)).append("\">");
@@ -255,7 +264,7 @@ public class WechatSharePageRenderer {
         appendContactModern(sb, spec, "au");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"au-foot\">右上角分享至朋友或朋友圈封装为卡片");
+            sb.append("<p class=\"au-foot\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
         }
         sb.append("</div></div>\n");
     }
@@ -320,7 +329,7 @@ public class WechatSharePageRenderer {
         sb.append("<div class=\"vv-foot\">");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"vv-hint\">右上角分享至朋友或朋友圈封装为卡片</p>");
+            sb.append("<p class=\"vv-hint\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
         }
         sb.append("</div></div></div>\n");
     }
@@ -371,14 +380,12 @@ public class WechatSharePageRenderer {
         }
 
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"fp-hint\">右上角分享至朋友或朋友圈封装为卡片");
+            sb.append("<p class=\"fp-hint\">右上角分享至朋友或朋友圈后此文案将隐藏");
         }
         sb.append("</div>\n");
     }
 
-    /**
-     * 文件 / 图片卡片「相关说明」：支持多条；每条为可跳转链接或仅展示文案。{@code ns} 为 CSS 前缀，如 {@code fp}、{@code in}。
-     */
+
     private void appendKindNotesSection(StringBuilder sb, WechatShareCard.Spec spec, String ns) {
         var notes = spec.getFileNotes();
         if (notes == null || notes.isEmpty()) {
@@ -464,6 +471,7 @@ public class WechatSharePageRenderer {
     }
 
     private static void appendStylesForKind(StringBuilder sb, String kind) {
+        ShareLandingCss.appendHarmonySans(sb);
         ShareLandingCss.appendKind(sb, kind);
         ShareLandingCss.appendSharedBanner(sb);
     }
@@ -480,8 +488,10 @@ public class WechatSharePageRenderer {
         sb.append("  audio.addEventListener('loadedmetadata',function(){total.textContent=fmt(audio.duration||0);});\n");
         sb.append("  audio.addEventListener('timeupdate',function(){var d=audio.duration||1;var p=audio.currentTime/d;fill.style.width=(p*100).toFixed(2)+'%';");
         sb.append("cur.textContent=fmt(audio.currentTime);});\n");
-        sb.append("  audio.addEventListener('play',function(){btn.classList.add('is-playing');});\n");
-        sb.append("  audio.addEventListener('pause',function(){btn.classList.remove('is-playing');});\n");
+        sb.append("  function setPlaying(on){btn.classList.toggle('is-playing',on);root.classList.toggle('is-playing',on);}\n");
+        sb.append("  audio.addEventListener('play',function(){setPlaying(true);});\n");
+        sb.append("  audio.addEventListener('pause',function(){setPlaying(false);});\n");
+        sb.append("  audio.addEventListener('ended',function(){setPlaying(false);});\n");
         sb.append("  btn.addEventListener('click',function(){if(audio.paused){audio.play();}else{audio.pause();}});\n");
         sb.append("  track.addEventListener('click',function(e){var r=track.getBoundingClientRect();var x=Math.min(Math.max(e.clientX-r.left,0),r.width);");
         sb.append("var d=audio.duration||0;if(d){audio.currentTime=(x/r.width)*d;}});\n");

@@ -1,6 +1,7 @@
 package com.avrinbai.wechatshare.web;
 
 import com.avrinbai.wechatshare.WechatShareCardKind;
+import com.avrinbai.wechatshare.WechatShareCardStates;
 import com.avrinbai.wechatshare.service.WechatShareCardService;
 import com.avrinbai.wechatshare.service.WechatShareSettingsService;
 import com.avrinbai.wechatshare.support.HtmlEscapes;
@@ -44,6 +45,11 @@ public class WechatShareSiteHandler {
                         return ServerResponse.status(HttpStatus.NOT_FOUND)
                             .contentType(MediaType.TEXT_HTML)
                             .bodyValue(notFoundHtml("链接不存在或已删除"));
+                    }
+                    if (!WechatShareCardStates.isEnabled(card)) {
+                        return ServerResponse.status(HttpStatus.NOT_FOUND)
+                            .contentType(MediaType.TEXT_HTML)
+                            .bodyValue(notFoundHtml("链接已停用或不存在"));
                     }
                     try {
                         var signUrl = request.uri().toString().split("#")[0];
@@ -90,6 +96,11 @@ public class WechatShareSiteHandler {
                     return ServerResponse.status(HttpStatus.NOT_FOUND)
                         .contentType(MediaType.TEXT_HTML)
                         .bodyValue(notFoundHtml("链接不存在或已删除"));
+                }
+                if (!WechatShareCardStates.isEnabled(card)) {
+                    return ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .contentType(MediaType.TEXT_HTML)
+                        .bodyValue(notFoundHtml("链接已停用或不存在"));
                 }
                 var raw = card.getSpec().getRedirectUrl().trim();
                 var target = HttpUrls.normalize(raw);

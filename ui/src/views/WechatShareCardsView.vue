@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import {
   Dialog,
   IconAddCircle,
+  IconRefreshLine,
   Toast,
   VButton,
   VCard,
@@ -12,6 +13,7 @@ import {
   VPageHeader,
   VPagination,
   VSpace,
+  VSwitch,
 } from '@halo-dev/components'
 import WechatShareCardEditingModal, {
   type CardKind,
@@ -20,7 +22,7 @@ import WechatShareCardEditingModal, {
   type WechatShareCardFormErrors,
 } from '@/components/WechatShareCardEditingModal.vue'
 import WechatShareSettingsPanel from '@/components/WechatShareSettingsPanel.vue'
-import { deleteData, getApiErrorMessage, getData, postData, putData } from '@/api/client'
+import { deleteData, getApiErrorMessage, getData, patchData, postData, putData } from '@/api/client'
 import { extractAttachmentUrl, thumbSrcForCardRow, type AttachmentLike } from '@/utils/attachmentUrl'
 import {
   resolveAbsoluteAssetUrl,
@@ -35,6 +37,8 @@ type WechatShareCardRow = {
   metadataName: string
   sid: string
   cardKind: CardKind | string
+  /** 服务端字段；缺省视为启用 */
+  enabled?: boolean
   title: string
   description: string
   img: string
@@ -51,25 +55,57 @@ type WechatShareCardRow = {
   fileNotes?: { title: string; detail: string; jumpLink: boolean; url: string }[] | null
   shareUrl: string
   goUrl: string
-  /** 服务端拼好的 data URL，无缓存时为 null */
   shareQrcodeDataUrl: string | null
 }
 
-const loading = ref(true)
+const listLoading = ref(true)
 const saving = ref(false)
 const cards = ref<WechatShareCardRow[]>([])
 const publicSiteUrl = ref('')
 
-const q = ref('')
+const searchKeyword = ref('')
+const selectedCardKindFilter = ref<string | undefined>(undefined)
+const selectedStatusFilter = ref<string | undefined>(undefined)
 const page = ref(1)
 const size = ref(20)
+
+const cardStatusFilterItems: { label: string; value?: string }[] = [
+  { label: '全部', value: undefined },
+  { label: '启用', value: 'enabled' },
+  { label: '停用', value: 'disabled' },
+]
+
+const cardKindFilterDropdownItems: { label: string; value?: string }[] = [
+  { label: '全部', value: undefined },
+  { label: '链接', value: 'link' },
+  { label: '图片', value: 'image' },
+  { label: '音频', value: 'audio' },
+  { label: '视频', value: 'video' },
+  { label: '文件', value: 'file' },
+]
+
+const hasListFilters = computed(
+  () =>
+    !!searchKeyword.value.trim() ||
+    selectedCardKindFilter.value !== undefined ||
+    selectedStatusFilter.value !== undefined,
+)
+
+function clearListFilters() {
+  searchKeyword.value = ''
+  selectedCardKindFilter.value = undefined
+  selectedStatusFilter.value = undefined
+}
+
+function rowEnabled(row: WechatShareCardRow): boolean {
+  return row.enabled !== false
+}
 
 const modalOpen = ref(false)
 const modalMode = ref<'create' | 'edit'>('create')
 const editingMetadataName = ref<string | null>(null)
 const editingSid = ref('')
 const attachmentModalOpen = ref(false)
-/** 每次打开附件选择器递增，强制重挂载，避免内部状态或 v-model 未同步导致第二次无法选 */
 const attachmentPickerKey = ref(0)
 const attachmentTarget = ref<'img' | 'mediaUrl'>('img')
 function emptyFileNote(): FileNoteFormItem {
@@ -79,6 +115,8 @@ function emptyFileNote(): FileNoteFormItem {
 const qrModalOpen = ref(false)
 const qrModalSrc = ref('')
 const qrModalKind = ref<CardKind>('link')
+
+const togglingEnabled = ref<string | null>(null)
 
 const settingsModalOpen = ref(false)
 const settingsPanelRef = ref<InstanceType<typeof WechatShareSettingsPanel> | null>(null)
@@ -129,8 +167,19 @@ function resetForm() {
 }
 
 const filteredCards = computed(() => {
-  const keyword = q.value.trim().toLowerCase()
-  const list = cards.value.slice()
+  let list = cards.value.slice()
+  const fkRaw = selectedCardKindFilter.value
+  const fk = typeof fkRaw === 'string' ? fkRaw.trim().toLowerCase() : ''
+  if (fk) {
+    list = list.filter((c) => (c.cardKind || 'link').toString().toLowerCase() === fk)
+  }
+  const st = selectedStatusFilter.value
+  if (st === 'enabled') {
+    list = list.filter((c) => rowEnabled(c))
+  } else if (st === 'disabled') {
+    list = list.filter((c) => !rowEnabled(c))
+  }
+  const keyword = searchKeyword.value.trim().toLowerCase()
   if (!keyword) return list
   return list.filter((c) => {
     const hay = `${c.sid} ${c.cardKind} ${rowKindLabel(c.cardKind)} ${c.title} ${c.description}`.toLowerCase()
@@ -143,7 +192,7 @@ const pagedCards = computed(() => {
   return filteredCards.value.slice(start, start + size.value)
 })
 
-watch([q], () => {
+watch([searchKeyword, selectedCardKindFilter, selectedStatusFilter], () => {
   page.value = 1
 })
 
@@ -163,19 +212,46 @@ function refreshPublicOrigin() {
 }
 
 async function load() {
-  loading.value = true
+  listLoading.value = true
   try {
     refreshPublicOrigin()
-    cards.value = await getData<WechatShareCardRow[]>('/cards', {
+    const rows = await getData<WechatShareCardRow[]>('/cards', {
       params: { _t: Date.now() },
     })
+    cards.value = rows.map((r) => ({
+      ...r,
+      enabled: r.enabled !== false,
+    }))
   } catch (e) {
     Dialog.error({
       title: '加载失败',
       description: getApiErrorMessage(e, '加载卡片列表失败，请稍后重试'),
     })
   } finally {
-    loading.value = false
+    listLoading.value = false
+  }
+}
+
+async function patchCardEnabled(row: WechatShareCardRow, enabled: boolean) {
+  if (togglingEnabled.value === row.metadataName) return
+  const prev = rowEnabled(row)
+  row.enabled = enabled
+  togglingEnabled.value = row.metadataName
+  try {
+    const saved = await patchData<WechatShareCardRow>(
+      `/cards/${encodeURIComponent(row.metadataName)}/enabled`,
+      { enabled },
+    )
+    row.enabled = saved.enabled !== false
+    Toast.success(enabled ? '已启用' : '已停用')
+  } catch (e) {
+    row.enabled = prev
+    Dialog.error({
+      title: '更新失败',
+      description: getApiErrorMessage(e, '状态更新失败，请稍后重试'),
+    })
+  } finally {
+    togglingEnabled.value = null
   }
 }
 
@@ -599,7 +675,11 @@ async function submitModal() {
     if (editedMeta) {
       const i = cards.value.findIndex((c) => c.metadataName === editedMeta)
       if (i >= 0) {
-        cards.value[i] = { ...cards.value[i], ...saved }
+        cards.value[i] = {
+          ...cards.value[i],
+          ...saved,
+          enabled: saved.enabled !== false,
+        }
       }
     }
     openShareQrModal(saved.shareQrcodeDataUrl, saved.cardKind as CardKind)
@@ -701,7 +781,7 @@ onMounted(() => {
         使用微信扫描后点击右上角分享；会话卡片将跳转到你配置的链接。
       </p>
       <p v-else class="qr-modal-hint">
-        使用微信扫描进入专属页面后，点击右上角分享即可封装为卡片样式。
+        使用微信扫描后，点击右上角分享即可封装为卡片样式。
       </p>
       <img v-if="qrModalSrc" class="qr-modal-img" :src="qrModalSrc" alt="分享二维码" />
       <template v-else>
@@ -738,33 +818,54 @@ onMounted(() => {
   </VPageHeader>
 
   <div class="wechat-share-page :uno: p-4 pt-2">
-    <VCard class="wechat-share-main-card" :body-class="[':uno: !p-0']">
+    <VCard
+      class="wechat-share-main-card"
+      :body-class="[':uno: !p-0 flex w-full min-w-0 flex-col items-stretch']"
+    >
       <template #header>
         <div class=":uno: block w-full bg-gray-50 px-4 py-3">
-          <div class=":uno: flex flex-wrap items-center justify-between gap-3">
-            <div class=":uno: flex items-center gap-2 box-border border border-gray-300 rounded-base">
-              <input
-                v-model="q"
-                class=":uno: h-9 w-56 rounded-md border border-gray-200 bg-white px-3 text-sm outline-none focus:border-primary"
-                placeholder="搜索 SID / 类型 / 标题 / 摘要"
-              />
+          <div class=":uno: relative flex flex-col flex-wrap items-start gap-4 sm:flex-row sm:items-center">
+            <div class=":uno: flex w-full flex-1 items-center sm:w-auto">
+              <SearchInput v-model="searchKeyword" placeholder="搜索 SID / 标题" />
             </div>
 
-            <div class=":uno: flex items-center gap-2">
-              <VButton size="sm" type="secondary" class="toolbar-btn" @click="load">刷新</VButton>
+            <VSpace spacing="lg" class=":uno: flex-wrap">
+              <FilterCleanButton v-if="hasListFilters" @click="clearListFilters" />
+              <FilterDropdown
+                v-model="selectedCardKindFilter"
+                label="类型"
+                :items="cardKindFilterDropdownItems"
+              />
+              <FilterDropdown v-model="selectedStatusFilter" label="状态" :items="cardStatusFilterItems" />
+              <div class=":uno: flex flex-row gap-2">
+                <div
+                  class=":uno: group cursor-pointer rounded p-1 hover:bg-gray-200"
+                  title="刷新"
+                  role="button"
+                  tabindex="0"
+                  @click="load()"
+                  @keydown.enter.prevent="load()"
+                  @keydown.space.prevent="load()"
+                >
+                  <IconRefreshLine
+                    :class="{ 'animate-spin text-gray-900': listLoading }"
+                    class=":uno: h-4 w-4 text-gray-600 group-hover:text-gray-900"
+                  />
+                </div>
+              </div>
               <VButton size="sm" type="primary" class="toolbar-btn" @click="openCreateModal">
                 <template #icon>
                   <IconAddCircle class=":uno: size-full" />
                 </template>
                 新建卡片
               </VButton>
-            </div>
+            </VSpace>
           </div>
         </div>
       </template>
 
-      <VLoading v-if="loading" />
-      <Transition v-else-if="!cards.length" appear name="fade">
+      <VLoading v-if="listLoading && !cards.length" />
+      <Transition v-else-if="!listLoading && !cards.length" appear name="fade">
         <VEmpty message="你可以尝试刷新或者新建分享卡片" title="暂无自定义分享卡片">
           <template #actions>
             <VSpace>
@@ -779,26 +880,32 @@ onMounted(() => {
           </template>
         </VEmpty>
       </Transition>
-      <Transition v-else-if="!filteredCards.length" appear name="fade">
-        <VEmpty message="请调整搜索关键词" title="无匹配结果" />
+      <Transition v-else-if="cards.length && !filteredCards.length" appear name="fade">
+        <VEmpty message="请调整类型、状态筛选，或在搜索框输入后按回车确认关键词" title="无匹配结果" />
       </Transition>
-      <Transition v-else appear name="fade">
-        <div class=":uno: overflow-x-auto">
-          <table class=":uno: min-w-full table-fixed border-collapse">
+      <Transition v-else-if="cards.length && filteredCards.length" appear name="fade">
+        <div class="ws-cards-scroll :uno: box-border w-full max-w-full min-w-0 overflow-x-auto">
+          <!--
+            列宽用 col 的 style 百分比，不用 Uno 挂在 <col> 上：构建产物里 <col> 常得不到 width 规则，改 col 也无效。
+            table-layout:fixed + width:100% 铺满容器；min-width 保证窄屏可横向滑动，避免列被压成一条竖线。
+          -->
+          <table class="ws-cards-table :uno: w-full border-collapse">
             <colgroup>
-              <col class=":uno: w-28" />
-              <col class=":uno: w-[5.5rem]" />
-              <col class=":uno: min-w-[14rem]" />
-              <col class=":uno: min-w-[11rem]" />
-              <col class=":uno: w-44" />
-              <col class=":uno: w-52" />
+              <col style="width: 8%" />
+              <col style="width: 20%" />
+              <col style="width: 16%" />
+              <col style="width: 12%" />
+              <col style="width: 14%" />
+              <col style="width: 14%" />
+              <col style="width: 25%" />
             </colgroup>
             <thead class=":uno: border-y border-gray-200 bg-gray-50 text-sm text-gray-600 font-semibold">
               <tr>
                 <th class=":uno: px-3 py-2 text-left">SID</th>
-                <th class=":uno: px-3 py-2 text-left">类型</th>
                 <th class=":uno: px-3 py-2 text-left">卡片</th>
                 <th class=":uno: px-3 py-2 text-left">摘要</th>
+                <th class=":uno: px-3 py-2 text-left">类型</th>
+                <th class=":uno: px-3 py-2 text-left">状态</th>
                 <th class=":uno: px-3 py-2 text-left">二维码</th>
                 <th class=":uno: px-3 py-2 text-left">操作</th>
               </tr>
@@ -812,12 +919,7 @@ onMounted(() => {
                 <td class=":uno: px-3 py-3 align-middle">
                   <span class="sid">{{ row.sid }}</span>
                 </td>
-                <td class=":uno: px-3 py-3 align-middle">
-                  <span class="kind-badge" :class="`kind-badge--${(row.cardKind || 'link').toString().toLowerCase()}`">
-                    {{ rowKindLabel(row.cardKind) }}
-                  </span>
-                </td>
-                <td class=":uno: px-3 py-3 align-middle">
+                <td class=":uno: min-w-0 px-3 py-3 align-middle">
                   <div class=":uno: min-w-0 flex items-center gap-3">
                     <div v-if="row.img" class="thumb">
                       <img
@@ -837,8 +939,23 @@ onMounted(() => {
                     </div>
                   </div>
                 </td>
-                <td class=":uno: px-3 py-3 align-middle text-gray-600">
+                <td class=":uno: min-w-0 px-3 py-3 align-middle text-gray-600">
                   <p class="desc">{{ rowSummary(row) }}</p>
+                </td>
+                <td class=":uno: px-3 py-3 align-middle">
+                  <span class="kind-badge" :class="`kind-badge--${(row.cardKind || 'link').toString().toLowerCase()}`">
+                    {{ rowKindLabel(row.cardKind) }}
+                  </span>
+                </td>
+                <td class=":uno: px-3 py-3 align-middle">
+                  <div class="status-switch-wrap">
+                    <VSwitch
+                      :model-value="rowEnabled(row)"
+                      size="sm"
+                      :disabled="togglingEnabled === row.metadataName"
+                      @update:model-value="(v) => patchCardEnabled(row, !!v)"
+                    />
+                  </div>
                 </td>
                 <td class=":uno: px-3 py-3 align-middle">
                   <div v-if="row.shareQrcodeDataUrl" class="qr-cell">
@@ -863,7 +980,7 @@ onMounted(() => {
       </Transition>
 
       <template #footer>
-        <div v-if="!loading && cards.length && filteredCards.length" class=":uno: px-4 py-3">
+        <div v-if="cards.length && filteredCards.length" class=":uno: px-4 py-3">
           <VPagination v-model:page="page" v-model:size="size" :total="filteredCards.length" :size-options="[10, 20, 30, 50]" />
         </div>
       </template>
@@ -892,6 +1009,23 @@ onMounted(() => {
   padding: 0;
 }
 
+.ws-cards-scroll {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ws-cards-table {
+  table-layout: fixed;
+  width: 100%;
+  /* 小于该宽度时由外层 overflow-x-auto 横向滚动，列保持可读 */
+  min-width: 56rem;
+}
+
+.ws-cards-table :is(th, td) {
+  box-sizing: border-box;
+}
+
 .toolbar-btn {
   border-radius: 4px;
   font-weight: 500;
@@ -899,6 +1033,12 @@ onMounted(() => {
 
 .op-btn {
   border-radius: 4px;
+}
+
+.status-switch-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .sid {
@@ -915,7 +1055,7 @@ onMounted(() => {
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
   font-size: 0.75rem;
-  font-weight: 600;
+
   letter-spacing: 0.02em;
   line-height: 1.35;
   white-space: nowrap;

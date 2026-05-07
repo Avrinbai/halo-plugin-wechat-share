@@ -11,5 +11,9 @@ interface ImportMetaEnv {
 declare module 'vue' {
   interface GlobalComponents {
     AttachmentSelectorModal: (typeof import('vue'))['DefineComponent']
+    /** Halo 控制台全局注册，与 SubmitList 等列表页一致 */
+    SearchInput: (typeof import('vue'))['DefineComponent']
+    FilterDropdown: (typeof import('vue'))['DefineComponent']
+    FilterCleanButton: (typeof import('vue'))['DefineComponent']
   }
 }

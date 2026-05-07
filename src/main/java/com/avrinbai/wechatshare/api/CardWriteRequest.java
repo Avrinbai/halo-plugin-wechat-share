@@ -22,7 +22,9 @@ public record CardWriteRequest(
     String videoGuideText,
     String videoExtraLink,
     String videoExtraLinkLabel,
-    List<FileNoteWrite> fileNotes
+    List<FileNoteWrite> fileNotes,
+    /** 仅更新时传入有效；null 表示不修改当前启用状态 */
+    Boolean enabled
 ) {
     public static CardWriteRequest legacyLink(String title, String description, String img, String redirectUrl) {
         return new CardWriteRequest(
@@ -40,7 +42,8 @@ public record CardWriteRequest(
             null,
             null,
             null,
-            List.of()
+            List.of(),
+            null
         );
     }
 

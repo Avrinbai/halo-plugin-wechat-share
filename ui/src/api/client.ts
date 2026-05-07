@@ -59,6 +59,14 @@ export async function putData<T>(path: string, body: unknown): Promise<T> {
   return res.data.data
 }
 
+export async function patchData<T>(path: string, body: unknown): Promise<T> {
+  const res = await client.patch<Envelope<T>>(path, body, {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!res.data?.ok) throw toApiError(res.data)
+  return res.data.data
+}
+
 export async function deleteData<T>(path: string): Promise<T> {
   const res = await client.delete<Envelope<T>>(path)
   if (!res.data?.ok) throw toApiError(res.data)

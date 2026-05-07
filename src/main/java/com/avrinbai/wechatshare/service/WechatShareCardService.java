@@ -110,7 +110,8 @@ public class WechatShareCardService {
             null,
             null,
             null,
-            List.of()
+            List.of(),
+            null
         ));
     }
 
@@ -132,6 +133,7 @@ public class WechatShareCardService {
             var spec = new WechatShareCard.Spec();
             spec.setSid(sid);
             applyKindFields(kind, spec, req);
+            spec.setEnabled(Boolean.TRUE);
             card.setSpec(spec);
 
             var created = Objects.requireNonNull(client.create(card).block(), "created card");
@@ -166,6 +168,9 @@ public class WechatShareCardService {
 
         var spec = card.getSpec();
         applyKindFields(kind, spec, req);
+        if (req.enabled() != null) {
+            spec.setEnabled(Boolean.TRUE.equals(req.enabled()));
+        }
         spec.setShareQrcodeBase64(null);
         spec.setShareQrcodeMimeType(null);
         client.update(card).block();
@@ -495,6 +500,23 @@ public class WechatShareCardService {
         } catch (Exception ex) {
             log.warn("Failed to cache share QR code: {}", ex.toString());
         }
+    }
+
+    public WechatShareCard setEnabled(String metadataName, boolean enabled) {
+        extensionSchemeRegistry.ensureRegistered();
+        if (metadataName == null || metadataName.isBlank()) {
+            throw new IllegalArgumentException("name 不能为空");
+        }
+        var name = metadataName.trim();
+        var card = client.fetch(WechatShareCard.class, name)
+            .switchIfEmpty(Mono.error(() -> new IllegalArgumentException("卡片不存在")))
+            .block();
+        if (card.getSpec() == null) {
+            throw new IllegalArgumentException("卡片数据无效");
+        }
+        card.getSpec().setEnabled(enabled);
+        client.update(card).block();
+        return client.fetch(WechatShareCard.class, name).blockOptional().orElse(card);
     }
 
     public void deleteByName(String metadataName) {
