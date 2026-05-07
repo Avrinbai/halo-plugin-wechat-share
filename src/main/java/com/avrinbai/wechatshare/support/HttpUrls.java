@@ -1,8 +1,5 @@
 package com.avrinbai.wechatshare.support;
 
-/**
- * 将用户输入的 URL 规范化为可解析的 http(s) 形式（与历史行为一致：{@code //} 补全为 https，无 scheme 时默认 https）。
- */
 public final class HttpUrls {
 
     private HttpUrls() {

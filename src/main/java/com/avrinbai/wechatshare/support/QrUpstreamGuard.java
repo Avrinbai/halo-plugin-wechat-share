@@ -4,9 +4,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 
-/**
- * 限制二维码上游请求目标，降低后台配置被滥用做 SSRF 的风险。
- */
 public final class QrUpstreamGuard {
 
     private QrUpstreamGuard() {

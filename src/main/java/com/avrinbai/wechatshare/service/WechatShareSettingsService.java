@@ -94,7 +94,6 @@ public class WechatShareSettingsService {
         return settings;
     }
 
-    /** Halo 不同版本中 {@link ExternalUrlSupplier#getRaw()} 可能为 {@link URI} 或 {@link URL}。 */
     private static String externalUrlToString(Object raw) {
         if (raw == null) {
             return null;

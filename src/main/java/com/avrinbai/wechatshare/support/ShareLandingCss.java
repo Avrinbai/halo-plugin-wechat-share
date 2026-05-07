@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 分享落地页样式：从 classpath 加载，避免巨型 Java 字符串。 */
 public final class ShareLandingCss {
 
     private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
@@ -29,7 +28,6 @@ public final class ShareLandingCss {
         sb.append(css("shared-banner"));
     }
 
-    /** HarmonyOS Sans（与 theme-acard HarmonySanc 同源）+ 全站字距；须在各类页面样式之前注入。 */
     public static void appendHarmonySans(StringBuilder sb) {
         sb.append(css("harmony-sans"));
     }
@@ -44,9 +42,21 @@ public final class ShareLandingCss {
             if (in == null) {
                 throw new IllegalStateException("Missing classpath resource: wechat-share/landing/" + stem + ".css");
             }
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            return normalizeLineEnds(new String(in.readAllBytes(), StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read " + path, e);
         }
+    }
+
+    private static String normalizeLineEnds(String s) {
+        return s.replace("\r\n", "\n").replace("\r", "\n");
+    }
+
+    static byte[] landingCssSnapshotUtf8Bytes(String fileName) {
+        if (!fileName.endsWith(".css")) {
+            throw new IllegalArgumentException("Expected *.css, got: " + fileName);
+        }
+        var stem = fileName.substring(0, fileName.length() - ".css".length());
+        return css(stem).getBytes(StandardCharsets.UTF_8);
     }
 }
