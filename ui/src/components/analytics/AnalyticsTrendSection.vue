@@ -67,7 +67,7 @@ function xAxisItemStyle(i: number) {
 </script>
 
 <template>
-  <VCard class="ad-main-card ad-trend-card :uno: h-full min-h-0">
+  <VCard class="ad-main-card ad-trend-card :uno: h-full min-h-0 w-full">
     <template #header>
       <div class="ad-card-section-header :uno: bg-gray-50">
         <div class="ad-card-section-header__title">

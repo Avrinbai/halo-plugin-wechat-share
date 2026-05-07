@@ -167,16 +167,21 @@ onMounted(() => {
   void refreshAll()
 })
 </script>
-
+ 
 <template>
-  <div class="analytics-page">
-    <VSpace class="ad-analytics-stack" direction="column" spacing="lg">
+  <div class="analytics-page w-full">
+    <VSpace class="ad-analytics-stack w-full" direction="column" spacing="lg">
       <VLoading v-if="summaryLoading && !summary" />
 
-      <VSpace v-else-if="summary" direction="column" spacing="md">
+      <VSpace
+        v-else-if="summary"
+        class="ad-analytics-summary-stack :uno: w-full min-w-0"
+        direction="column"
+        spacing="md"
+      >
         <AnalyticsSummaryMetrics :summary="summary" />
 
-        <section class="ad-trend-rank-row">
+        <section class="ad-trend-rank-row w-full">
           <AnalyticsTrendSection :points="summary.trendLastDays || []" :max="trendMax" />
           <AnalyticsTopRank :rows="summary.topCards" />
         </section>

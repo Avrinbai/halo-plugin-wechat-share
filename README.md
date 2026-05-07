@@ -104,11 +104,9 @@
 
 ### 实验性功能：IP 归属地查询
 
-在 **插件配置** → **实验功能** 中可开启 **「访问明细 · IP 归属地查询」**，并配置 **IP 归属查询接口**（默认示例：`https://api.avrinbai.cn/api/tools/ip-location`，GET，查询参数 `ip`）。
+在 **插件配置** → **实验功能** 中可开启 **「访问明细 · IP 归属地查询」**。
 
-- **默认关闭**；开启后，访问明细与详情弹窗中可对一条记录发起 **查询归属**（由插件后端请求上游，避免浏览器跨域）。  
-- **结果持久化在 Halo**：成功后将归属地文案写入该条 **访问记录扩展** 字段（与二维码缓存在扩展上的方式类似），换设备、换浏览器仍可见；同一记录再次打开无需重复请求上游。  
-- 精度与可用性依赖上游接口与 IP 类型，仅供参考。
+- **默认关闭**；开启后，访问明细与详情弹窗中可对一条记录发起 **查询归属**。  
 
 
 ## 预览图
@@ -117,12 +115,12 @@
 
 <div style="display:flex; gap:10px;">
 <img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="48%" />
-<img src="./images/admin-cards-edit.png" alt="控制台-插件配置" title="插件配置" width="48%" />
+<img src="./images/admin-cards-edit.png" alt="控制台-编辑卡片" title="编辑卡片" width="48%" />
 
 </div>
 
 <div style="display:flex; gap:10px;">
-<img src="./images/admin-dashboard.png" alt="控制台-插件配置" title="插件配置" width="48%" />
+<img src="./images/admin-dashboard.png" alt="控制台-数据看板" title="数据看板" width="48%" />
 <img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="48%" />
 
 </div>
