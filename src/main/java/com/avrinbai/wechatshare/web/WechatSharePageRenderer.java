@@ -232,7 +232,7 @@ public class WechatSharePageRenderer {
         sb.append("<div class=\"ln-after\">");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"ln-hint\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
+            sb.append("<p class=\"ln-hint\">右上角分享至朋友或朋友圈查看效果</p>");
         }
         sb.append("</div>");
         sb.append("</main>");
