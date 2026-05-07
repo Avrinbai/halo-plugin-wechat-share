@@ -116,9 +116,14 @@
 ### 控制台
 
 <div style="display:flex; gap:10px;">
-<img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="30%" />
-<img src="./images/admin-cards-edit.png" alt="控制台-插件配置" title="插件配置" width="30%" />
-<img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="30%" />
+<img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="48%" />
+<img src="./images/admin-cards-edit.png" alt="控制台-插件配置" title="插件配置" width="48%" />
+
+</div>
+
+<div style="display:flex; gap:10px;">
+<img src="./images/admin-dashboard.png" alt="控制台-插件配置" title="插件配置" width="48%" />
+<img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="48%" />
 
 </div>
 
