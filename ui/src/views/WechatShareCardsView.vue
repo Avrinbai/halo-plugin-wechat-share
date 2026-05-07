@@ -818,10 +818,8 @@ onMounted(() => {
   </VPageHeader>
 
   <div class="wechat-share-page :uno: p-4 pt-2">
-    <VCard
-      class="wechat-share-main-card"
-      :body-class="[':uno: !p-0 flex w-full min-w-0 flex-col items-stretch']"
-    >
+    <!-- 与 link-submit SubmitList 一致：body 不要用 flex-col + items-stretch，否则唯一子块会被纵向拉满视口，表格行被撑得极高 -->
+    <VCard class="wechat-share-main-card" :body-class="[':uno: !p-0']">
       <template #header>
         <div class=":uno: block w-full bg-gray-50 px-4 py-3">
           <div class=":uno: relative flex flex-col flex-wrap items-start gap-4 sm:flex-row sm:items-center">
@@ -884,12 +882,9 @@ onMounted(() => {
         <VEmpty message="请调整类型、状态筛选，或在搜索框输入后按回车确认关键词" title="无匹配结果" />
       </Transition>
       <Transition v-else-if="cards.length && filteredCards.length" appear name="fade">
-        <div class="ws-cards-scroll :uno: box-border w-full max-w-full min-w-0 overflow-x-auto">
-          <!--
-            列宽用 col 的 style 百分比，不用 Uno 挂在 <col> 上：构建产物里 <col> 常得不到 width 规则，改 col 也无效。
-            table-layout:fixed + width:100% 铺满容器；min-width 保证窄屏可横向滑动，避免列被压成一条竖线。
-          -->
-          <table class="ws-cards-table :uno: w-full border-collapse">
+        <!-- 表格布局样式放在 scoped CSS，避免生产构建 Uno 未生成 :uno: 工具类导致错位（本地 dev 全量 CSS 可能仍正常） -->
+        <div class="ws-cards-scroll">
+          <table class="ws-cards-table">
             <colgroup>
               <col style="width: 8%" />
               <col style="width: 20%" />
@@ -899,28 +894,24 @@ onMounted(() => {
               <col style="width: 14%" />
               <col style="width: 25%" />
             </colgroup>
-            <thead class=":uno: border-y border-gray-200 bg-gray-50 text-sm text-gray-600 font-semibold">
+            <thead class="ws-cards-thead">
               <tr>
-                <th class=":uno: px-3 py-2 text-left">SID</th>
-                <th class=":uno: px-3 py-2 text-left">卡片</th>
-                <th class=":uno: px-3 py-2 text-left">摘要</th>
-                <th class=":uno: px-3 py-2 text-left">类型</th>
-                <th class=":uno: px-3 py-2 text-left">状态</th>
-                <th class=":uno: px-3 py-2 text-left">二维码</th>
-                <th class=":uno: px-3 py-2 text-left">操作</th>
+                <th class="ws-cards-th">SID</th>
+                <th class="ws-cards-th">卡片</th>
+                <th class="ws-cards-th">摘要</th>
+                <th class="ws-cards-th">类型</th>
+                <th class="ws-cards-th">状态</th>
+                <th class="ws-cards-th">二维码</th>
+                <th class="ws-cards-th">操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="row in pagedCards"
-                :key="row.metadataName"
-                class="card-row :uno: border-b border-gray-100 text-sm transition-colors hover:bg-gray-50"
-              >
-                <td class=":uno: px-3 py-3 align-middle">
+              <tr v-for="row in pagedCards" :key="row.metadataName" class="ws-card-row">
+                <td class="ws-cards-td">
                   <span class="sid">{{ row.sid }}</span>
                 </td>
-                <td class=":uno: min-w-0 px-3 py-3 align-middle">
-                  <div class=":uno: min-w-0 flex items-center gap-3">
+                <td class="ws-cards-td ws-cards-td--clip">
+                  <div class="ws-card-cell">
                     <div v-if="row.img" class="thumb">
                       <img
                         class="thumb__img"
@@ -933,45 +924,45 @@ onMounted(() => {
                     <div v-else class="thumb thumb--placeholder" :aria-hidden="true">
                       <span class="thumb__letter">{{ row.title.slice(0, 1) }}</span>
                     </div>
-                    <div class=":uno: min-w-0">
-                      <p class=":uno: truncate text-sm text-gray-800 font-medium">{{ row.title }}</p>
-                      <p class=":uno: text-xs text-gray-400">metadata {{ row.metadataName.slice(0, 8) }}…</p>
+                    <div class="ws-card-cell-text">
+                      <p class="ws-card-title">{{ row.title }}</p>
+                      <p class="ws-card-meta">metadata {{ row.metadataName.slice(0, 8) }}…</p>
                     </div>
                   </div>
                 </td>
-                <td class=":uno: min-w-0 px-3 py-3 align-middle text-gray-600">
+                <td class="ws-cards-td ws-cards-td--clip ws-cards-td--muted">
                   <p class="desc">{{ rowSummary(row) }}</p>
                 </td>
-                <td class=":uno: px-3 py-3 align-middle">
+                <td class="ws-cards-td">
                   <span class="kind-badge" :class="`kind-badge--${(row.cardKind || 'link').toString().toLowerCase()}`">
                     {{ rowKindLabel(row.cardKind) }}
                   </span>
                 </td>
-                <td class=":uno: px-3 py-3 align-middle">
+                <td class="ws-cards-td">
                   <div class="status-switch-wrap">
+                    <!-- 不传 size：避免控制台 Uno 生成 [size~=sm]{width:24rem…} 命中原生 size 属性，把整行撑爆 -->
                     <VSwitch
                       :model-value="rowEnabled(row)"
-                      size="sm"
                       :disabled="togglingEnabled === row.metadataName"
                       @update:model-value="(v) => patchCardEnabled(row, !!v)"
                     />
                   </div>
                 </td>
-                <td class=":uno: px-3 py-3 align-middle">
+                <td class="ws-cards-td">
                   <div v-if="row.shareQrcodeDataUrl" class="qr-cell">
                     <img class="qr-thumb" :src="row.shareQrcodeDataUrl" alt="分享二维码" loading="lazy" />
                   </div>
                   <span v-else class="qr-missing">未生成</span>
                 </td>
-                <td class=":uno: px-3 py-3 align-middle">
-                  <VSpace class=":uno: gap-2 flex-wrap">
+                <td class="ws-cards-td">
+                  <div class="ws-actions-inner">
                     <VButton size="xs" type="secondary" class="op-btn" @click="copyText('分享链接', row.shareUrl)">
                       复制链接
                     </VButton>
                     <VButton size="xs" type="secondary" class="op-btn" @click="openEditModal(row)">编辑</VButton>
                     <VButton size="xs" type="secondary" class="op-btn" @click="openQrPreview(row)">查看二维码</VButton>
                     <VButton size="xs" type="danger" class="op-btn" @click="removeCard(row)">删除</VButton>
-                  </VSpace>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -996,10 +987,6 @@ onMounted(() => {
   padding: 0;
 }
 
-.wechat-share-page :deep(.halo-card) {
-  border-radius: 12px;
-}
-
 .wechat-share-main-card {
   box-shadow: 0 4px 18px rgb(15 23 42 / 0.06);
 }
@@ -1009,21 +996,138 @@ onMounted(() => {
   padding: 0;
 }
 
+.wechat-share-main-card :deep(.halo-card) {
+  border-radius: 12px;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.wechat-share-main-card :deep(.card-body) {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100%;
+  min-width: 0;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
 .ws-cards-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 0 0 auto;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 .ws-cards-table {
+  flex: 0 0 auto;
   table-layout: fixed;
   width: 100%;
-  /* 小于该宽度时由外层 overflow-x-auto 横向滚动，列保持可读 */
+  height: auto !important;
+  max-height: none !important;
   min-width: 56rem;
+  border-collapse: collapse;
+}
+
+.ws-cards-table tbody tr {
+  height: auto !important;
+  max-height: none !important;
 }
 
 .ws-cards-table :is(th, td) {
   box-sizing: border-box;
+}
+
+.ws-cards-thead {
+  border-bottom: 1px solid rgb(229 231 235);
+  background: rgb(249 250 251);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(75 85 99);
+}
+
+.ws-cards-th {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ws-card-row {
+  border-bottom: 1px solid rgb(243 244 246);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  transition: background-color 0.15s ease;
+}
+
+.ws-card-row:hover {
+  background: rgb(249 250 251);
+}
+
+.ws-cards-td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+  min-width: 0;
+}
+
+.ws-cards-td--clip {
+  overflow: hidden;
+}
+
+.ws-cards-td--muted {
+  color: rgb(75 85 99);
+}
+
+.ws-card-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ws-card-cell-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ws-card-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(31 41 55);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-card-meta {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: rgb(156 163 175);
+  line-height: 1.35;
+}
+
+.ws-actions-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ws-actions-inner :deep(.halo-button),
+.ws-actions-inner :deep(button.halo-button),
+.ws-actions-inner :deep(.n-button) {
+  width: auto !important;
+  flex: 0 0 auto;
 }
 
 .toolbar-btn {
@@ -1036,9 +1140,63 @@ onMounted(() => {
 }
 
 .status-switch-wrap {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: flex-start;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.status-switch-wrap :deep(.switch-wrapper) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: fit-content !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 3.75rem !important;
+  max-height: 2rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+.status-switch-wrap :deep(button.switch-inner) {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 2.75rem !important;
+  height: 1.5rem !important;
+  min-width: 2.75rem !important;
+  min-height: 1.5rem !important;
+  max-width: 2.75rem !important;
+  max-height: 1.5rem !important;
+  padding: 0 0.125rem !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: transparent !important;
+  border-radius: 9999px !important;
+}
+
+.status-switch-wrap :deep(.switch-indicator) {
+  flex-shrink: 0 !important;
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  min-width: 1.125rem !important;
+  min-height: 1.125rem !important;
+  margin-block: 0 !important;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.08),
+    0 0 0 1px rgb(15 23 42 / 0.04) !important;
+}
+
+.status-switch-wrap :deep(.switch-indicator.translate-x-5) {
+  --tw-translate-x: calc(2.75rem - 4px - 0.25rem - 1.125rem) !important;
 }
 
 .sid {
@@ -1055,7 +1213,6 @@ onMounted(() => {
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
   font-size: 0.75rem;
-
   letter-spacing: 0.02em;
   line-height: 1.35;
   white-space: nowrap;
