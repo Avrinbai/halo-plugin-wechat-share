@@ -87,9 +87,9 @@
 ### 手机端
 
 <div style="display:flex; gap:10px;">
-<img src="./images/mobile-preview.png"  width="33%" />
-<img src="./images/mobile-preview_1.png"  width="33%" />
-<img src="./images/mobile-preview_2.png"  width="33%" />
+<img src="./images/mobile-preview.png"  width="32%" />
+<img src="./images/mobile-preview_1.png"  width="32%" />
+<img src="./images/mobile-preview_2.png"  width="32%" />
 
 
 </div>
