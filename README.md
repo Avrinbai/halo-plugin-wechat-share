@@ -78,20 +78,26 @@
 ### 控制台
 
 <div style="display:flex; gap:10px;">
-<img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="33%" />
-<img src="./images/admin-cards-edit.png" alt="控制台-插件配置" title="插件配置" width="33%" />
-<img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="33%" />
+<img src="./images/admin-cards.png" alt="控制台-卡片管理" title="卡片管理" width="30%" />
+<img src="./images/admin-cards-edit.png" alt="控制台-插件配置" title="插件配置" width="30%" />
+<img src="./images/admin-settings.png" alt="控制台-插件配置" title="插件配置" width="30%" />
 
 </div>
 
 ### 手机端
 
 <div style="display:flex; gap:10px;">
-<img src="./images/mobile-preview.png"  width="20%" />
-<img src="./images/mobile-preview_2.png"  width="20%" />
-<img src="./images/mobile-preview_3.png"  width="20%" />
-<img src="./images/mobile-preview_4.png"  width="20%" />
-<img src="./images/mobile-preview_5.png"  width="20%" />
+<img src="./images/mobile-preview.png"  width="33%" />
+<img src="./images/mobile-preview_1.png"  width="33%" />
+<img src="./images/mobile-preview_2.png"  width="33%" />
+
+
+</div>
+
+<div style="display:flex; gap:10px;">
+<img src="./images/mobile-preview_3.png"  width="32%" />
+<img src="./images/mobile-preview_4.png"  width="32%" />
+<img src="./images/mobile-preview_5.png"  width="32%" />
 
 </div>
 
