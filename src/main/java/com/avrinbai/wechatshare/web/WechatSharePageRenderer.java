@@ -8,7 +8,11 @@ import com.avrinbai.wechatshare.service.WechatShareCardService;
 import com.avrinbai.wechatshare.support.HtmlEscapes;
 import com.avrinbai.wechatshare.support.ShareLandingCss;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +20,26 @@ import org.springframework.stereotype.Component;
 public class WechatSharePageRenderer {
 
     private static final String WECHAT_JSSDK_URL = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
+
+    private static final String LN_SVG_BACK =
+        "<svg class=\"ln-ico\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\""
+            + " stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\""
+            + " aria-hidden=\"true\"><path d=\"m15 18-6-6 6-6\"/></svg>";
+
+    private static final String LN_SVG_MORE =
+        "<svg class=\"ln-ico\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\""
+            + " stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\">"
+            + "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/></svg>";
+
+    private static final String LN_SVG_CARD_PH =
+        "<svg class=\"ln-ph-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" aria-hidden=\"true\">"
+            + "<rect x=\"10\" y=\"8\" width=\"36\" height=\"44\" rx=\"5\" fill=\"#f5d547\" stroke=\"#333\""
+            + " stroke-width=\"2\"/><rect x=\"18\" y=\"16\" width=\"36\" height=\"44\" rx=\"5\" fill=\"#ffe066\""
+            + " stroke=\"#333\" stroke-width=\"2\"/><path d=\"M28 28v18\" stroke=\"#333\" stroke-width=\"2\""
+            + " stroke-linecap=\"round\"/><circle cx=\"28\" cy=\"34\" r=\"2\" fill=\"#333\"/><circle cx=\"28\" cy=\"42\""
+            + " r=\"2\" fill=\"#333\"/><rect x=\"32\" y=\"38\" width=\"22\" height=\"14\" rx=\"3\" fill=\"#a8e6cf\""
+            + " stroke=\"#333\" stroke-width=\"2\"/><text x=\"43\" y=\"49\" text-anchor=\"middle\" font-size=\"11\""
+            + " font-weight=\"700\" fill=\"#333\" font-family=\"system-ui,sans-serif\">链接</text></svg>";
 
     private final ObjectMapper objectMapper;
     private final WeChatJsBridgeService weChatJsBridgeService;
@@ -76,6 +100,8 @@ public class WechatSharePageRenderer {
             sb.append(" class=\"body-im\"");
         } else if (WechatShareCardKind.AUDIO.equals(kind)) {
             sb.append(" class=\"body-au\"");
+        } else if (WechatShareCardKind.LINK.equals(kind)) {
+            sb.append(" class=\"body-ln\"");
         }
         sb.append(">\n");
 
@@ -155,16 +181,76 @@ public class WechatSharePageRenderer {
     private void appendLinkShell(StringBuilder sb, WechatShareCard.Spec spec, WeChatJsBridgeService.Signature sig, boolean showShareHint) {
         var title = nz(spec.getTitle());
         var desc = nz(spec.getDescription());
-        sb.append("<div class=\"wrap\"><main class=\"sheet\">");
-        sb.append("<h1>").append(HtmlEscapes.text(title.isBlank() ? "微信分享" : title)).append("</h1>");
+        var img = nz(spec.getImg());
+        var headline = title.isBlank() ? "微信分享" : title;
+        var avMark = linkAvatarMark(headline);
+
+        sb.append("<div class=\"ln-chat\">");
+        sb.append("<header class=\"ln-topbar\">");
+        sb.append("<button type=\"button\" class=\"ln-iconbtn\" tabindex=\"-1\" aria-hidden=\"true\">");
+        sb.append(LN_SVG_BACK);
+        sb.append("</button>");
+        sb.append("<h1 class=\"ln-topbar-title\">").append(HtmlEscapes.text(headline)).append("</h1>");
+        sb.append("<button type=\"button\" class=\"ln-iconbtn\" tabindex=\"-1\" aria-hidden=\"true\">");
+        sb.append(LN_SVG_MORE);
+        sb.append("</button>");
+        sb.append("</header>");
+
+        sb.append("<main class=\"ln-thread\">");
+        sb.append("<div class=\"ln-time\"><span>").append(HtmlEscapes.text(linkChatTimestamp())).append("</span></div>");
+
+        sb.append("<div class=\"ln-row ln-row--me\">");
+        sb.append("<div class=\"ln-bubble-wrap\">");
+        sb.append("<div class=\"ln-bubble\">");
+        sb.append("<div class=\"ln-cardln\">");
+        sb.append("<div class=\"ln-cardln-body\">");
+        sb.append("<h2 class=\"ln-cardln-title\">").append(HtmlEscapes.text(headline)).append("</h2>");
         if (!desc.isBlank()) {
-            sb.append("<p class=\"sub\">").append(HtmlEscapes.text(desc)).append("</p>");
+            sb.append("<p class=\"ln-cardln-desc\">").append(HtmlEscapes.text(desc)).append("</p>");
         }
+        sb.append("</div>");
+        if (!img.isBlank()) {
+            sb.append("<div class=\"ln-cardln-thumb\">");
+            sb.append("<img src=\"").append(HtmlEscapes.text(img)).append("\" alt=\"\" loading=\"lazy\" decoding=\"async\"/>");
+            sb.append("</div>");
+        } else {
+            sb.append("<div class=\"ln-cardln-thumb ln-cardln-thumb--ph\" aria-hidden=\"true\">");
+            sb.append(LN_SVG_CARD_PH);
+            sb.append("</div>");
+        }
+        sb.append("</div></div></div>");
+
+        sb.append("<div class=\"ln-avatar\" aria-hidden=\"true\">");
+        if (!img.isBlank()) {
+            sb.append("<img src=\"").append(HtmlEscapes.text(img)).append("\" alt=\"\" loading=\"lazy\" decoding=\"async\"/>");
+        } else {
+            sb.append("<span class=\"ln-avatar-fallback\">").append(HtmlEscapes.text(avMark)).append("</span>");
+        }
+        sb.append("</div>");
+        sb.append("</div>");
+
+        sb.append("<div class=\"ln-after\">");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"note\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
+            sb.append("<p class=\"ln-hint\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
         }
-        sb.append("</main></div>\n");
+        sb.append("</div>");
+        sb.append("</main>");
+
+        sb.append("</div>\n");
+    }
+
+    private static String linkChatTimestamp() {
+        var fmt = DateTimeFormatter.ofPattern("a h:mm", Locale.CHINA);
+        return ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).format(fmt).replace('\u202f', ' ').trim();
+    }
+
+    private static String linkAvatarMark(String headline) {
+        if (headline == null || headline.isBlank()) {
+            return "?";
+        }
+        var cp = headline.codePointAt(0);
+        return new String(Character.toChars(cp));
     }
 
     private void appendImageShell(StringBuilder sb, WechatShareCard.Spec spec, WeChatJsBridgeService.Signature sig, boolean showShareHint) {

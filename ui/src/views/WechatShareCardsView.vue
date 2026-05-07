@@ -778,7 +778,7 @@ onMounted(() => {
   <VModal :visible="qrModalOpen" title="分享二维码" @close="qrModalOpen = false">
     <div class="qr-modal-body">
       <p v-if="qrModalKind === 'link'" class="qr-modal-hint">
-        使用微信扫描后点击右上角分享；会话卡片将跳转到你配置的链接。
+        使用微信扫描后点击右上角分享，会话卡片将跳转到你配置的链接。
       </p>
       <p v-else class="qr-modal-hint">
         使用微信扫描后，点击右上角分享即可封装为卡片样式。
