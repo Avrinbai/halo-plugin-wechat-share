@@ -15,7 +15,7 @@ class ShareLandingCssSnapshotTest {
         Map.entry("harmony-sans.css", "eeadd57b777ecd9e6460842d0e978b61c604d2828749b73e8ffb95108cd0d826"),
         Map.entry("image.css", "b103a53ecacc4a594f6d355aa383303fc669e3a7956e47a6122895e14695b0cb"),
         Map.entry("link.css", "f2e92f266a51883b6cf9cc92b0166085cef43677e5ef72b2d820db97500d0378"),
-        Map.entry("shared-banner.css", "8397e255cb5ab3e3d038e3f4c51a7be1d6ef56dadc7df751ec2b4eae3dd7e6e4"),
+        Map.entry("shared-banner.css", "91dec7e1ed7462c72f83b721e33654f8091b17a46ca768b07b3db8bee56d8fdc"),
         Map.entry("video.css", "13a414c3ce2bf931dc88f8c0562f1c37f9fd746202c93d824ab0c1a4b8871778")
     );
 
