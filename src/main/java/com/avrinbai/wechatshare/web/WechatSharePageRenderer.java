@@ -9,6 +9,7 @@ import com.avrinbai.wechatshare.support.HtmlEscapes;
 import com.avrinbai.wechatshare.support.ShareLandingCss;
 import com.avrinbai.wechatshare.support.SharePageConstants;
 import com.avrinbai.wechatshare.support.SharePageCopy;
+import com.avrinbai.wechatshare.support.PublicUrls;
 import com.avrinbai.wechatshare.support.SharePageSvgSnippets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.ZoneId;
@@ -31,6 +32,7 @@ public class WechatSharePageRenderer {
     }
 
     /**
+     * @param externalSiteRoot
      * @param showShareHint 
      */
     public String render(
@@ -38,14 +40,15 @@ public class WechatSharePageRenderer {
         WechatShareSettings settings,
         String signUrl,
         String wechatShareLink,
-        boolean showShareHint
+        boolean showShareHint,
+        String externalSiteRoot
     ) throws Exception {
         var spec = card.getSpec();
         var kind = WechatShareCardKind.normalize(spec.getCardKind());
 
         var shareTitle = resolveShareTitle(kind, spec);
         var shareDesc = resolveShareDesc(kind, spec);
-        var shareImg = nz(spec.getImg());
+        var shareImg = absoluteUrlForWxShare(externalSiteRoot, nz(spec.getImg()));
 
         var appId = "";
         var secret = "";
@@ -619,6 +622,20 @@ public class WechatSharePageRenderer {
 
     private static String nz(String s) {
         return s == null ? "" : s;
+    }
+
+    private static String absoluteUrlForWxShare(String siteRoot, String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        var t = raw.trim();
+        if (t.startsWith("http://") || t.startsWith("https://")) {
+            return t;
+        }
+        if (siteRoot == null || siteRoot.isBlank()) {
+            return t;
+        }
+        return PublicUrls.absoluteHttp(siteRoot, t);
     }
 
     private void appendWxScripts(

@@ -57,8 +57,8 @@ public class WechatShareSiteHandler {
                             .bodyValue(notFoundHtml("链接已停用或不存在"));
                     }
                     try {
-                        var signUrl = request.uri().toString().split("#")[0];
                         var site = settingsService.resolveExternalSiteUrl(settings);
+                        var signUrl = buildWxJsSdkSignUrl(request, site);
                         var basePath = WechatShareSettingsService.normalizePath(
                             settings.getSpec() == null ? null : settings.getSpec().getPublicBasePath(),
                             WechatShareSettingsService.DEFAULT_PUBLIC_BASE_PATH
@@ -82,7 +82,7 @@ public class WechatShareSiteHandler {
                         var hintParam = request.queryParam("hint").orElse("");
                         var showShareHint = !"0".equals(hintParam);
 
-                        var html = sharePageRenderer.render(card, settings, signUrl, wechatShareLink, showShareHint);
+                        var html = sharePageRenderer.render(card, settings, signUrl, wechatShareLink, showShareHint, site);
                         visitRecorder.recordAsync(request, sid, VisitHitType.SHARE);
                         return ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(html);
                     } catch (Exception e) {
@@ -126,6 +126,27 @@ public class WechatShareSiteHandler {
                         .bodyValue(notFoundHtml("跳转地址无效"));
                 }
             });
+    }
+
+    /**
+     * 与微信客户端用于签名的页面 URL 对齐：优先使用 Halo「外部访问地址」作为 scheme+host，
+     * path 与 query 与当前请求一致（保留 rawQuery 编码顺序）。
+     */
+    static String buildWxJsSdkSignUrl(ServerRequest request, String externalSiteRoot) {
+        var path = request.path();
+        var rawQuery = request.uri().getRawQuery();
+        if (externalSiteRoot == null || externalSiteRoot.isBlank()) {
+            return request.uri().toString().split("#")[0];
+        }
+        var base = externalSiteRoot.trim();
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        var p = (path == null || path.isBlank()) ? "" : (path.startsWith("/") ? path : "/" + path);
+        if (rawQuery == null || rawQuery.isBlank()) {
+            return base + p;
+        }
+        return base + p + "?" + rawQuery;
     }
 
     private static String notFoundHtml(String msg) {
