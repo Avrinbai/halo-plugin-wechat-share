@@ -37,7 +37,7 @@ public class WechatShareSettings extends AbstractExtension {
         @Schema(description = "公开访问路径前缀（默认 /wechat-share）")
         private String publicBasePath;
 
-        @Schema(description = "二维码 PNG 上游接口（默认官方示例网关）")
+        @Schema(description = "已废弃：分享二维码改由插件内本地生成并写入卡片扩展，该字段不再读取。")
         private String qrcodeApiBase;
 
         @Schema(description = "实验功能：在访问明细中查询 IP 归属地（默认关闭）")

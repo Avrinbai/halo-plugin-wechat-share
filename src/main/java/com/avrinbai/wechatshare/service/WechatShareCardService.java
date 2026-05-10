@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -481,16 +480,12 @@ public class WechatShareCardService {
                 log.debug("Skip QR cache: shareUrl not absolute http(s): {}", shareUrl);
                 return;
             }
-            var qrBase = settings.getSpec().getQrcodeApiBase();
-            if (qrBase == null || qrBase.isBlank()) {
+            var generated = shareQrCodeService.encodeShareUrlToPngBase64(shareUrl);
+            if (generated.isEmpty()) {
+                log.warn("QR generation returned empty, sid={}", sid);
                 return;
             }
-            var fetched = shareQrCodeService.fetchAsBase64(qrBase.trim(), shareUrl);
-            if (fetched.isEmpty()) {
-                log.warn("QR upstream returned empty body or failed, sid={}", sid);
-                return;
-            }
-            var result = fetched.get();
+            var result = generated.get();
             var fresh = client.fetch(WechatShareCard.class, created.getMetadata().getName()).blockOptional().orElse(null);
             if (fresh == null || fresh.getSpec() == null) {
                 return;

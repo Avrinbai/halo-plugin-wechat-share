@@ -774,7 +774,7 @@ onMounted(() => {
       <img v-if="qrModalSrc" class="qr-modal-img" :src="qrModalSrc" alt="分享二维码" />
       <template v-else>
         <p class="qr-modal-empty">暂无预览</p>
-        <p class="qr-modal-empty-tip">若刚保存过卡片，请确认 Halo 外部访问地址与二维码上游接口可访问。</p>
+        <p class="qr-modal-empty-tip">若刚保存过卡片，请确认 Halo「设置 → 外部访问地址」已配置；系统将自动生成并缓存二维码。</p>
       </template>
     </div>
   </VModal>

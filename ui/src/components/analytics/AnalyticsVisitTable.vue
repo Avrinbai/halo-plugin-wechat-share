@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { VButton } from '@halo-dev/components'
 import RiEyeLine from '~icons/ri/eye-line'
-import RiMapPinLine from '~icons/ri/map-pin-line'
 import type { VisitRow } from '@/types/analyticsDashboard'
 import { visitEnvCategory } from '@/types/analyticsDashboard'
 import { cardKindLabelZh } from '@/utils/cardKindDisplay'
@@ -133,9 +132,7 @@ function loadingIp(row: VisitRow) {
                 :disabled="loadingIp(v)"
                 @click="emit('ip-lookup', v)"
               >
-                <template #icon>
-                  <RiMapPinLine class="ad-visit-detail-icon" />
-                </template>
+                查询IP归属
               </VButton>
             </div>
           </td>

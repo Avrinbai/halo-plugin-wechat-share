@@ -7,6 +7,9 @@ import com.avrinbai.wechatshare.service.WeChatJsBridgeService;
 import com.avrinbai.wechatshare.service.WechatShareCardService;
 import com.avrinbai.wechatshare.support.HtmlEscapes;
 import com.avrinbai.wechatshare.support.ShareLandingCss;
+import com.avrinbai.wechatshare.support.SharePageConstants;
+import com.avrinbai.wechatshare.support.SharePageCopy;
+import com.avrinbai.wechatshare.support.SharePageSvgSnippets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -18,28 +21,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WechatSharePageRenderer {
-
-    private static final String WECHAT_JSSDK_URL = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
-
-    private static final String LN_SVG_BACK =
-        "<svg class=\"ln-ico\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\""
-            + " stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\""
-            + " aria-hidden=\"true\"><path d=\"m15 18-6-6 6-6\"/></svg>";
-
-    private static final String LN_SVG_MORE =
-        "<svg class=\"ln-ico\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\""
-            + " stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\">"
-            + "<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/></svg>";
-
-    private static final String LN_SVG_CARD_PH =
-        "<svg class=\"ln-ph-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" aria-hidden=\"true\">"
-            + "<rect x=\"10\" y=\"8\" width=\"36\" height=\"44\" rx=\"5\" fill=\"#f5d547\" stroke=\"#333\""
-            + " stroke-width=\"2\"/><rect x=\"18\" y=\"16\" width=\"36\" height=\"44\" rx=\"5\" fill=\"#ffe066\""
-            + " stroke=\"#333\" stroke-width=\"2\"/><path d=\"M28 28v18\" stroke=\"#333\" stroke-width=\"2\""
-            + " stroke-linecap=\"round\"/><circle cx=\"28\" cy=\"34\" r=\"2\" fill=\"#333\"/><circle cx=\"28\" cy=\"42\""
-            + " r=\"2\" fill=\"#333\"/><rect x=\"32\" y=\"38\" width=\"22\" height=\"14\" rx=\"3\" fill=\"#a8e6cf\""
-            + " stroke=\"#333\" stroke-width=\"2\"/><text x=\"43\" y=\"49\" text-anchor=\"middle\" font-size=\"11\""
-            + " font-weight=\"700\" fill=\"#333\" font-family=\"system-ui,sans-serif\">链接</text></svg>";
 
     private final ObjectMapper objectMapper;
     private final WeChatJsBridgeService weChatJsBridgeService;
@@ -74,10 +55,10 @@ public class WechatSharePageRenderer {
         }
         var sig = weChatJsBridgeService.sign(appId, secret, signUrl);
 
-        var displayTitle = shareTitle.isBlank() ? "微信分享" : shareTitle;
+        var displayTitle = shareTitle.isBlank() ? SharePageCopy.FALLBACK_PAGE_TITLE : shareTitle;
 
-        var sb = new StringBuilder();
-        sb.append("<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n");
+        var sb = new StringBuilder(SharePageConstants.RENDER_BUFFER_INITIAL_CAPACITY);
+        sb.append("<!DOCTYPE html>\n<html lang=\"").append(SharePageConstants.HTML_LANG_ZH_CN).append("\">\n<head>\n");
         sb.append("<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
         sb.append("<meta name=\"color-scheme\" content=\"");
         if (WechatShareCardKind.AUDIO.equals(kind) || WechatShareCardKind.VIDEO.equals(kind)) {
@@ -87,7 +68,7 @@ public class WechatSharePageRenderer {
         }
         sb.append("\">\n");
         sb.append("<title>").append(HtmlEscapes.text(displayTitle)).append("</title>\n");
-        sb.append("<link rel=\"preconnect\" href=\"https://s1.hdslb.com\" crossorigin>\n");
+        sb.append("<link rel=\"preconnect\" href=\"").append(SharePageConstants.PRECONNECT_HDSLB).append("\" crossorigin>\n");
         sb.append("<style>\n");
         appendStylesForKind(sb, kind);
         sb.append("</style></head><body");
@@ -172,8 +153,8 @@ public class WechatSharePageRenderer {
             sb.append("<div id=\"wx-jssdk-banner\" class=\"sdk-banner\" role=\"alert\"></div>\n");
         } else {
             sb.append("<div class=\"sig-static-hint\" role=\"status\">");
-            sb.append("<p>未正确配置公众号信息，");
-            sb.append("请到插件「插件配置」填写 AppId、AppSecret。</p>");
+            sb.append("<p>").append(HtmlEscapes.text(SharePageCopy.SIG_STATIC_HINT_LEAD));
+            sb.append(HtmlEscapes.text(SharePageCopy.SIG_STATIC_HINT_TAIL)).append("</p>");
             sb.append("</div>\n");
         }
     }
@@ -182,17 +163,27 @@ public class WechatSharePageRenderer {
         var title = nz(spec.getTitle());
         var desc = nz(spec.getDescription());
         var img = nz(spec.getImg());
-        var headline = title.isBlank() ? "微信分享" : title;
+        var headline = title.isBlank() ? SharePageCopy.FALLBACK_PAGE_TITLE : title;
         var avMark = linkAvatarMark(headline);
 
+        sb.append("<div class=\"ln-phone-stage\">");
+        sb.append("<div class=\"ln-phone\">");
+        sb.append("<div class=\"ln-phone__bezel\">");
+        sb.append("<div class=\"ln-phone__screen\">");
+        sb.append("<div class=\"ln-statusbar\" aria-hidden=\"true\">");
+        sb.append("<span class=\"ln-statusbar__time\">").append(HtmlEscapes.text(linkStatusBarClock())).append("</span>");
+        sb.append("<div class=\"ln-statusbar__tray\">");
+        sb.append("<span class=\"ln-sb-signal\"><span></span><span></span><span></span><span></span></span>");
+        sb.append("<span class=\"ln-sb-bat\"><span class=\"ln-sb-bat__fill\"></span></span>");
+        sb.append("</div></div>");
         sb.append("<div class=\"ln-chat\">");
         sb.append("<header class=\"ln-topbar\">");
         sb.append("<button type=\"button\" class=\"ln-iconbtn\" tabindex=\"-1\" aria-hidden=\"true\">");
-        sb.append(LN_SVG_BACK);
+        sb.append(SharePageSvgSnippets.LINK_TOPBAR_BACK);
         sb.append("</button>");
         sb.append("<h1 class=\"ln-topbar-title\">").append(HtmlEscapes.text(headline)).append("</h1>");
         sb.append("<button type=\"button\" class=\"ln-iconbtn\" tabindex=\"-1\" aria-hidden=\"true\">");
-        sb.append(LN_SVG_MORE);
+        sb.append(SharePageSvgSnippets.LINK_TOPBAR_MORE);
         sb.append("</button>");
         sb.append("</header>");
 
@@ -215,7 +206,7 @@ public class WechatSharePageRenderer {
             sb.append("</div>");
         } else {
             sb.append("<div class=\"ln-cardln-thumb ln-cardln-thumb--ph\" aria-hidden=\"true\">");
-            sb.append(LN_SVG_CARD_PH);
+            sb.append(SharePageSvgSnippets.LINK_CARD_PLACEHOLDER);
             sb.append("</div>");
         }
         sb.append("</div></div></div>");
@@ -232,17 +223,23 @@ public class WechatSharePageRenderer {
         sb.append("<div class=\"ln-after\">");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"ln-hint\">右上角分享至朋友或朋友圈查看效果</p>");
+            sb.append("<p class=\"ln-hint\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT)).append("</p>");
         }
         sb.append("</div>");
         sb.append("</main>");
 
-        sb.append("</div>\n");
+        sb.append("</div>");
+        sb.append("</div></div></div></div>\n");
     }
 
     private static String linkChatTimestamp() {
         var fmt = DateTimeFormatter.ofPattern("a h:mm", Locale.CHINA);
         return ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).format(fmt).replace('\u202f', ' ').trim();
+    }
+
+    private static String linkStatusBarClock() {
+        return DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
+            .format(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")));
     }
 
     private static String linkAvatarMark(String headline) {
@@ -259,7 +256,7 @@ public class WechatSharePageRenderer {
         var img = nz(spec.getImg());
         var intro = nz(spec.getDescription());
         var headlineRaw = !title.isBlank() ? title : dn;
-        var headline = headlineRaw.isBlank() ? "图片" : headlineRaw;
+        var headline = headlineRaw.isBlank() ? SharePageCopy.IMAGE_HEADLINE_FALLBACK : headlineRaw;
 
         sb.append("<div class=\"img-shell\"><div class=\"img-stack\">");
         sb.append("<div class=\"img-card\">");
@@ -275,7 +272,7 @@ public class WechatSharePageRenderer {
         appendContactModern(sb, spec, "img");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"img-foot\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
+            sb.append("<p class=\"img-foot\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
         }
         sb.append("</div></div>");
         appendKindNotesSection(sb, spec, "in");
@@ -290,8 +287,8 @@ public class WechatSharePageRenderer {
         var audioUrl = nz(spec.getMediaUrl());
         var intro = nz(spec.getDescription());
         var headlineRaw = !title.isBlank() ? title : displayName;
-        var headline = headlineRaw.isBlank() ? "未命名曲目" : headlineRaw;
-        var artistLine = intro.isBlank() ? "纯音乐，请欣赏" : intro;
+        var headline = headlineRaw.isBlank() ? SharePageCopy.AUDIO_TITLE_FALLBACK : headlineRaw;
+        var artistLine = intro.isBlank() ? SharePageCopy.AUDIO_ARTIST_FALLBACK : intro;
 
         sb.append("<div class=\"au-shell\">");
         if (!cover.isBlank()) {
@@ -316,7 +313,9 @@ public class WechatSharePageRenderer {
                 sb.append("<div class=\"au-art au-art--ph\" aria-hidden=\"true\"></div>");
             }
             sb.append("</div>");
-            sb.append("<button type=\"button\" class=\"au-play\" aria-label=\"播放/暂停\">");
+            sb.append("<button type=\"button\" class=\"au-play\" aria-label=\"")
+                .append(HtmlEscapes.text(SharePageCopy.ARIA_PLAY_PAUSE))
+                .append("\">");
             sb.append("<span class=\"au-play__ring\" aria-hidden=\"true\"></span>");
             sb.append("<span class=\"au-play__ic\" aria-hidden=\"true\"></span>");
             sb.append("</button>");
@@ -350,7 +349,7 @@ public class WechatSharePageRenderer {
         appendContactModern(sb, spec, "au");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"au-foot\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
+            sb.append("<p class=\"au-foot\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
         }
         sb.append("</div></div>\n");
     }
@@ -365,10 +364,10 @@ public class WechatSharePageRenderer {
         var extra = nz(spec.getVideoExtraLink());
         var extraLabel = nz(spec.getVideoExtraLinkLabel());
         var headlineRaw = !pageTitle.isBlank() ? pageTitle : vt;
-        var headline = headlineRaw.isBlank() ? "视频" : headlineRaw;
+        var headline = headlineRaw.isBlank() ? SharePageCopy.VIDEO_HEADLINE_FALLBACK : headlineRaw;
         var caption = !guide.isBlank() ? guide : desc;
         var showExpand = caption.length() > 96;
-        var chipText = extraLabel.isBlank() ? "相关链接" : extraLabel;
+        var chipText = extraLabel.isBlank() ? SharePageCopy.VIDEO_EXTRA_CHIP_DEFAULT : extraLabel;
 
         sb.append("<div class=\"vv-stage\">");
         sb.append("<div class=\"vv-viewport\">");
@@ -380,7 +379,9 @@ public class WechatSharePageRenderer {
                 sb.append("poster=\"").append(poster).append("\" ");
             }
             sb.append("src=\"").append(HtmlEscapes.text(videoUrl)).append("\"></video>");
-            sb.append("<button type=\"button\" id=\"vv-bigplay\" class=\"vv-bigplay\" aria-label=\"播放/暂停\">");
+            sb.append("<button type=\"button\" id=\"vv-bigplay\" class=\"vv-bigplay\" aria-label=\"")
+                .append(HtmlEscapes.text(SharePageCopy.ARIA_PLAY_PAUSE))
+                .append("\">");
             sb.append("<span class=\"vv-bigplay__tri\" aria-hidden=\"true\"></span></button>");
             sb.append("<div class=\"vv-grad\" aria-hidden=\"true\"></div>");
             sb.append("<div class=\"vv-ui\">");
@@ -401,21 +402,25 @@ public class WechatSharePageRenderer {
                 sb.append("\" id=\"vv-descbox\">");
                 sb.append("<p class=\"vv-desc\" id=\"vv-desc\">").append(HtmlEscapes.text(caption)).append("</p>");
                 if (showExpand) {
-                    sb.append("<button type=\"button\" class=\"vv-more\" id=\"vv-more\" aria-expanded=\"false\">展开</button>");
+                    sb.append("<button type=\"button\" class=\"vv-more\" id=\"vv-more\" aria-expanded=\"false\">")
+                        .append(HtmlEscapes.text(SharePageCopy.VIDEO_EXPAND))
+                        .append("</button>");
                 }
                 sb.append("</div>");
             }
-            sb.append("<div class=\"vv-prog\" id=\"vv-prog\" role=\"slider\" aria-label=\"进度\" tabindex=\"0\">");
+            sb.append("<div class=\"vv-prog\" id=\"vv-prog\" role=\"slider\" aria-label=\"")
+                .append(HtmlEscapes.text(SharePageCopy.ARIA_PROGRESS))
+                .append("\" tabindex=\"0\">");
             sb.append("<div class=\"vv-prog-fill\" id=\"vv-prog-fill\"></div></div>");
             sb.append("</div></div></div>");
         } else {
-            sb.append("<div class=\"vv-empty\">暂无视频地址</div>");
+            sb.append("<div class=\"vv-empty\">").append(HtmlEscapes.text(SharePageCopy.VIDEO_EMPTY)).append("</div>");
             sb.append("</div>");
         }
         sb.append("<div class=\"vv-foot\">");
         appendSdkBlocks(sb, sig);
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"vv-hint\">右上角分享至朋友或朋友圈后此文案将隐藏</p>");
+            sb.append("<p class=\"vv-hint\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
         }
         sb.append("</div></div></div>\n");
     }
@@ -430,7 +435,7 @@ public class WechatSharePageRenderer {
 
         var primary = !fileName.isBlank() ? fileName : title;
         if (primary.isBlank()) {
-            primary = "文件下载";
+            primary = SharePageCopy.FILE_PRIMARY_FALLBACK;
         }
         var secondary = !fileName.isBlank() && !title.isBlank() && !fileName.equals(title) ? title : "";
 
@@ -452,10 +457,12 @@ public class WechatSharePageRenderer {
         }
         appendSdkBlocks(sb, sig);
         if (!fileUrl.isBlank()) {
-            sb.append("<a class=\"fp-dl\" href=\"").append(HtmlEscapes.text(fileUrl)).append("\" rel=\"noopener\">下载</a>");
-            sb.append("<p class=\"fp-tip\">若微信内拦截下载，可使用右上角菜单「在浏览器打开」。</p>");
+            sb.append("<a class=\"fp-dl\" href=\"").append(HtmlEscapes.text(fileUrl)).append("\" rel=\"noopener\">")
+                .append(HtmlEscapes.text(SharePageCopy.FILE_DOWNLOAD))
+                .append("</a>");
+            sb.append("<p class=\"fp-tip\">").append(HtmlEscapes.text(SharePageCopy.FILE_DOWNLOAD_TIP)).append("</p>");
         } else {
-            sb.append("<p class=\"fp-empty\">暂无可用的下载地址，请稍后再试。</p>");
+            sb.append("<p class=\"fp-empty\">").append(HtmlEscapes.text(SharePageCopy.FILE_NO_URL)).append("</p>");
         }
         sb.append("</div>");
 
@@ -466,7 +473,7 @@ public class WechatSharePageRenderer {
         }
 
         if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"fp-hint\">右上角分享至朋友或朋友圈后此文案将隐藏");
+            sb.append("<p class=\"fp-hint\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
         }
         sb.append("</div>\n");
     }
@@ -478,13 +485,16 @@ public class WechatSharePageRenderer {
             var legacyUrl = nz(spec.getOptionalLinkUrl());
             if (!legacyUrl.isBlank()) {
                 var legacyLabel = nz(spec.getOptionalLinkLabel());
-                var linkTitle = legacyLabel.isBlank() ? "查看详情" : legacyLabel;
-                sb.append("<div class=\"").append(ns).append("-card\"><div class=\"").append(ns).append("-section\">相关说明</div><div class=\"")
-                    .append(ns).append("-links\">");
+                var linkTitle = legacyLabel.isBlank() ? SharePageCopy.LEGACY_LINK_TITLE_FALLBACK : legacyLabel;
+                sb.append("<div class=\"").append(ns).append("-card\"><div class=\"").append(ns).append("-section\">")
+                    .append(HtmlEscapes.text(SharePageCopy.SECTION_RELATED_NOTES))
+                    .append("</div><div class=\"").append(ns).append("-links\">");
                 sb.append("<a class=\"").append(ns).append("-link\" href=\"").append(HtmlEscapes.text(legacyUrl)).append("\" rel=\"noopener\">");
                 sb.append("<span class=\"").append(ns).append("-link-main\"><span class=\"").append(ns).append("-link-t\">")
                     .append(HtmlEscapes.text(linkTitle)).append("</span>");
-                sb.append("<span class=\"").append(ns).append("-link-d\">在浏览器中打开</span></span>");
+                sb.append("<span class=\"").append(ns).append("-link-d\">")
+                    .append(HtmlEscapes.text(SharePageCopy.NOTE_OPEN_IN_BROWSER))
+                    .append("</span></span>");
                 sb.append("<span class=\"").append(ns).append("-arrow\" aria-hidden=\"true\"></span></a>");
                 sb.append("</div></div>");
             }
@@ -507,11 +517,15 @@ public class WechatSharePageRenderer {
             if (jump && !u.isBlank()) {
                 inner.append("<a class=\"").append(ns).append("-link\" href=\"").append(HtmlEscapes.text(u)).append("\" rel=\"noopener\">");
                 inner.append("<span class=\"").append(ns).append("-link-main\">");
-                inner.append("<span class=\"").append(ns).append("-link-t\">").append(HtmlEscapes.text(t.isBlank() ? "链接" : t)).append("</span>");
+                inner.append("<span class=\"").append(ns).append("-link-t\">")
+                    .append(HtmlEscapes.text(t.isBlank() ? SharePageCopy.NOTE_LINK_FALLBACK_TITLE : t))
+                    .append("</span>");
                 if (!d.isBlank()) {
                     inner.append("<span class=\"").append(ns).append("-link-d\">").append(HtmlEscapes.text(d)).append("</span>");
                 } else {
-                    inner.append("<span class=\"").append(ns).append("-link-d\">在浏览器中打开</span>");
+                    inner.append("<span class=\"").append(ns).append("-link-d\">")
+                        .append(HtmlEscapes.text(SharePageCopy.NOTE_OPEN_IN_BROWSER))
+                        .append("</span>");
                 }
                 inner.append("</span><span class=\"").append(ns).append("-arrow\" aria-hidden=\"true\"></span></a>");
             } else {
@@ -528,24 +542,11 @@ public class WechatSharePageRenderer {
         if (!any) {
             return;
         }
-        sb.append("<div class=\"").append(ns).append("-card\"><div class=\"").append(ns).append("-section\">相关说明</div><div class=\"")
-            .append(ns).append("-links\">");
+        sb.append("<div class=\"").append(ns).append("-card\"><div class=\"").append(ns).append("-section\">")
+            .append(HtmlEscapes.text(SharePageCopy.SECTION_RELATED_NOTES))
+            .append("</div><div class=\"").append(ns).append("-links\">");
         sb.append(inner);
         sb.append("</div></div>");
-    }
-
-    private static void appendOptionalLinkModern(StringBuilder sb, WechatShareCard.Spec spec, String pfx) {
-        var label = nz(spec.getOptionalLinkLabel());
-        var url = nz(spec.getOptionalLinkUrl());
-        if (label.isBlank() && url.isBlank()) {
-            return;
-        }
-        sb.append("<div class=\"").append(pfx).append("-opt\">");
-        sb.append("<span>").append(HtmlEscapes.text(label.isBlank() ? "相关链接" : label)).append("</span>");
-        if (!url.isBlank()) {
-            sb.append("<a class=\"").append(pfx).append("-opt-a\" href=\"").append(HtmlEscapes.text(url)).append("\" rel=\"noopener\">查看</a>");
-        }
-        sb.append("</div>");
     }
 
     private static void appendContactModern(StringBuilder sb, WechatShareCard.Spec spec, String pfx) {
@@ -606,7 +607,11 @@ public class WechatSharePageRenderer {
         sb.append("  if(more&&box){\n");
         sb.append("    more.addEventListener('click',function(){var open=!box.classList.contains('is-open');");
         sb.append("box.classList.toggle('is-open',open);more.setAttribute('aria-expanded',open?'true':'false');");
-        sb.append("more.textContent=open?'收起':'展开';});\n");
+        sb.append("more.textContent=open?'")
+            .append(SharePageCopy.VIDEO_COLLAPSE)
+            .append("':'")
+            .append(SharePageCopy.VIDEO_EXPAND)
+            .append("';});\n");
         sb.append("  }\n");
         sb.append("})();\n");
         sb.append("</script>\n");
@@ -650,13 +655,9 @@ public class WechatSharePageRenderer {
 
         sb.append("<script>\n");
         sb.append("(function () {\n");
-        sb.append("  var u = ").append(objectMapper.writeValueAsString(WECHAT_JSSDK_URL)).append(";\n");
-        sb.append(
-            "  var loadFail = '无法加载微信 JSSDK 脚本，自定义分享不可用。"
-                + "请检查网络或稍后重试；若域名/网络拦截了对 res.wx.qq.com 的访问也会导致此问题。';\n");
-        sb.append(
-            "  var cfgFail = '微信 JSSDK 校验失败：请核对插件中的公众号 AppId / AppSecret、"
-                + "JS 接口安全域名是否与当前页面域名一致，并确认「外部访问地址」与签名所用链接一致。';\n");
+        sb.append("  var u = ").append(objectMapper.writeValueAsString(SharePageConstants.WECHAT_JSSDK_SCRIPT_URL)).append(";\n");
+        sb.append("  var loadFail = ").append(objectMapper.writeValueAsString(SharePageCopy.WX_SCRIPT_LOAD_FAIL)).append(";\n");
+        sb.append("  var cfgFail = ").append(objectMapper.writeValueAsString(SharePageCopy.WX_SCRIPT_CONFIG_FAIL)).append(";\n");
         sb.append("  function showBanner(text) {\n");
         sb.append("    var el = document.getElementById('wx-jssdk-banner');\n");
         sb.append("    if (!el) return;\n");
@@ -669,8 +670,7 @@ public class WechatSharePageRenderer {
         sb.append("  s.onerror = function () { showBanner(loadFail); };\n");
         sb.append("  s.onload = function () {\n");
         sb.append("    if (typeof wx === 'undefined') {\n");
-        sb.append(
-            "      showBanner('微信 JSSDK 已请求但未暴露 wx 对象，无法继续配置分享。请更换微信内置浏览器重试。');\n");
+        sb.append("      showBanner(").append(objectMapper.writeValueAsString(SharePageCopy.WX_SCRIPT_WX_UNDEFINED)).append(");\n");
         sb.append("      return;\n");
         sb.append("    }\n");
         sb.append("    wx.config(").append(cfgJson).append(");\n");

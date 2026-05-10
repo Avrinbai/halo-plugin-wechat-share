@@ -118,10 +118,9 @@ public class WechatShareSettingsService {
     private static void normalizeSpec(WechatShareSettings.Spec spec) {
         spec.setPublicBasePath(normalizePath(spec.getPublicBasePath(), DEFAULT_PUBLIC_BASE_PATH));
         spec.setPublicSiteUrl(null);
-        if (spec.getQrcodeApiBase() == null || spec.getQrcodeApiBase().isBlank()) {
-            spec.setQrcodeApiBase("https://api.avrinbai.cn/api/tools/qrcode");
-        } else {
-            spec.setQrcodeApiBase(spec.getQrcodeApiBase().trim());
+        if (spec.getQrcodeApiBase() != null) {
+            var q = spec.getQrcodeApiBase().trim();
+            spec.setQrcodeApiBase(q.isBlank() ? null : q);
         }
         if (spec.getExperimentalIpLookupEnabled() == null) {
             spec.setExperimentalIpLookupEnabled(Boolean.FALSE);

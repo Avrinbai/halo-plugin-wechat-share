@@ -91,7 +91,7 @@ public class AdminWechatShareController {
         }
         var b64 = card.getSpec().getShareQrcodeBase64();
         if (b64 == null || b64.isBlank()) {
-            return Envelope.error("暂无二维码缓存：请确认站点外部访问地址已配置且二维码接口可访问");
+            return Envelope.error("暂无二维码缓存：请确认 Halo「设置 → 外部访问地址」已配置且为 http(s)，保存卡片后系统将自动生成并缓存二维码。");
         }
         var mime = defaultImageMime(card.getSpec().getShareQrcodeMimeType());
         return Envelope.ok(new ShareQrPayload(mime, b64));

@@ -11,6 +11,7 @@ type WechatShareSettingsExt = {
     wxAppId?: string
     wxAppSecret?: string
     publicBasePath?: string
+    /** 已废弃：服务端生成二维码，此字段仅兼容旧数据 */
     qrcodeApiBase?: string
     experimentalIpLookupEnabled?: boolean
     ipLookupApiBase?: string
@@ -25,7 +26,6 @@ const form = reactive({
   wxAppId: '',
   wxAppSecret: '',
   publicBasePath: '',
-  qrcodeApiBase: '',
   experimentalIpLookupEnabled: false,
   ipLookupApiBase: '',
 })
@@ -35,7 +35,6 @@ function applyFromModel(m: WechatShareSettingsExt) {
   form.wxAppId = s.wxAppId ?? ''
   form.wxAppSecret = s.wxAppSecret ?? ''
   form.publicBasePath = s.publicBasePath ?? ''
-  form.qrcodeApiBase = s.qrcodeApiBase ?? ''
   form.experimentalIpLookupEnabled = Boolean(s.experimentalIpLookupEnabled)
   form.ipLookupApiBase = s.ipLookupApiBase ?? ''
 }
@@ -67,7 +66,6 @@ async function save() {
         wxAppId: form.wxAppId.trim(),
         wxAppSecret: form.wxAppSecret.trim(),
         publicBasePath: form.publicBasePath.trim(),
-        qrcodeApiBase: form.qrcodeApiBase.trim(),
         experimentalIpLookupEnabled: Boolean(form.experimentalIpLookupEnabled),
         ipLookupApiBase: form.ipLookupApiBase.trim(),
       },
@@ -76,7 +74,7 @@ async function save() {
     model.value = saved
     applyFromModel(saved)
     Toast.success('设置已保存')
-    /** 延迟刷新，便于 Toast 显示；使卡片列表、数据看板等重新拉取配置（如实验开关、二维码上游等） */
+    /** 延迟刷新，便于 Toast 显示；使卡片列表、数据看板等重新拉取配置（如实验开关等） */
     window.setTimeout(() => {
       window.location.reload()
     }, 450)
@@ -130,16 +128,6 @@ defineExpose({ load })
             默认 <code class="settings-code">/wechat-share</code>；对外固定为该前缀下的
             <code class="settings-code">/share</code> 与 <code class="settings-code">/go</code>。修改保存后立即生效。
           </p>
-        </div>
-
-        <div class="settings-divider" />
-
-        <h4 class="settings-subtitle">控制台工具</h4>
-
-        <div class="settings-field">
-          <div class="settings-field-label">二维码上游接口</div>
-          <input v-model="form.qrcodeApiBase" type="text" class="settings-input" placeholder="https://…" />
-          <p class="settings-hint">用于分享卡片二维码生成，保持默认即可。</p>
         </div>
 
         <div class="settings-divider settings-divider--section" />
