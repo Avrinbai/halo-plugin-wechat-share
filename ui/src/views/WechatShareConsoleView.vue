@@ -67,7 +67,7 @@ async function refreshDashboard() {
     </div>
   </VModal>
 
-  <VPageHeader title="自定义微信分享卡片">
+  <VPageHeader title="自定义社交分享卡片">
     <template #icon>
       <RiShareForwardLine />
     </template>
