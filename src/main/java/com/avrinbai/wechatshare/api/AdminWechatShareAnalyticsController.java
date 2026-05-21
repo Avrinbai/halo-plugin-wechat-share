@@ -40,6 +40,7 @@ public class AdminWechatShareAnalyticsController {
             new EnvBreakdownDto(
                 s.envWechat(),
                 s.envWework(),
+                s.envQq(),
                 s.envMobileOther(),
                 s.envDesktop(),
                 s.envUnknown()
@@ -127,7 +128,7 @@ public class AdminWechatShareAnalyticsController {
     ) {
     }
 
-    public record EnvBreakdownDto(long wechat, long wework, long mobileOther, long desktop, long unknown) {
+    public record EnvBreakdownDto(long wechat, long wework, long qq, long mobileOther, long desktop, long unknown) {
     }
 
     public record TrendPointDto(String date, long count) {

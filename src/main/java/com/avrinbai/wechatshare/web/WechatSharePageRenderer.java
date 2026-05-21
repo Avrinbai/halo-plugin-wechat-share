@@ -9,6 +9,7 @@ import com.avrinbai.wechatshare.support.HtmlEscapes;
 import com.avrinbai.wechatshare.support.ShareLandingCss;
 import com.avrinbai.wechatshare.support.SharePageConstants;
 import com.avrinbai.wechatshare.support.SharePageCopy;
+import com.avrinbai.wechatshare.support.ShareTextBytes;
 import com.avrinbai.wechatshare.support.PublicUrls;
 import com.avrinbai.wechatshare.support.SharePageSvgSnippets;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +41,7 @@ public class WechatSharePageRenderer {
         WechatShareSettings settings,
         String signUrl,
         String wechatShareLink,
+        String qqShareLink,
         boolean showShareHint,
         String externalSiteRoot
     ) throws Exception {
@@ -71,6 +73,7 @@ public class WechatSharePageRenderer {
         }
         sb.append("\">\n");
         sb.append("<title>").append(HtmlEscapes.text(displayTitle)).append("</title>\n");
+        appendQqMetaTags(sb, shareTitle, shareDesc, shareImg, qqShareLink);
         sb.append("<link rel=\"preconnect\" href=\"").append(SharePageConstants.PRECONNECT_HDSLB).append("\" crossorigin>\n");
         sb.append("<style>\n");
         appendStylesForKind(sb, kind);
@@ -95,12 +98,16 @@ public class WechatSharePageRenderer {
             appendWxScripts(sb, sig, shareTitle, shareDesc, shareImg, wechatShareLink);
         }
 
+        appendQqScripts(sb, shareTitle, shareDesc, shareImg, qqShareLink);
+
         if (WechatShareCardKind.AUDIO.equals(kind)) {
             appendAudioUiScript(sb, spec);
         }
         if (WechatShareCardKind.VIDEO.equals(kind)) {
             appendVideoUiScript(sb);
         }
+
+        appendShareHintDismissScript(sb, nz(spec.getSid()), showShareHint);
 
         sb.append("</body>\n</html>\n");
         return sb.toString();
@@ -225,8 +232,10 @@ public class WechatSharePageRenderer {
 
         sb.append("<div class=\"ln-after\">");
         appendSdkBlocks(sb, sig);
-        if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"ln-hint\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT)).append("</p>");
+        if (showShareHint) {
+            sb.append("<p class=\"ln-hint ws-share-hint\">")
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT))
+                .append("</p>");
         }
         sb.append("</div>");
         sb.append("</main>");
@@ -274,8 +283,10 @@ public class WechatSharePageRenderer {
         }
         appendContactModern(sb, spec, "img");
         appendSdkBlocks(sb, sig);
-        if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"img-foot\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
+        if (showShareHint) {
+            sb.append("<p class=\"img-foot ws-share-hint\">")
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append("</p>");
         }
         sb.append("</div></div>");
         appendKindNotesSection(sb, spec, "in");
@@ -351,8 +362,10 @@ public class WechatSharePageRenderer {
 
         appendContactModern(sb, spec, "au");
         appendSdkBlocks(sb, sig);
-        if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"au-foot\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
+        if (showShareHint) {
+            sb.append("<p class=\"au-foot ws-share-hint\">")
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append("</p>");
         }
         sb.append("</div></div>\n");
     }
@@ -422,8 +435,10 @@ public class WechatSharePageRenderer {
         }
         sb.append("<div class=\"vv-foot\">");
         appendSdkBlocks(sb, sig);
-        if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"vv-hint\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
+        if (showShareHint) {
+            sb.append("<p class=\"vv-hint ws-share-hint\">")
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append("</p>");
         }
         sb.append("</div></div></div>\n");
     }
@@ -475,8 +490,10 @@ public class WechatSharePageRenderer {
             sb.append("<footer class=\"fp-foot\">").append(HtmlEscapes.text(contact)).append("</footer>");
         }
 
-        if (showShareHint && sig.usable()) {
-            sb.append("<p class=\"fp-hint\">").append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES)).append("</p>");
+        if (showShareHint) {
+            sb.append("<p class=\"fp-hint ws-share-hint\">")
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append("</p>");
         }
         sb.append("</div>\n");
     }
@@ -701,6 +718,110 @@ public class WechatSharePageRenderer {
         sb.append("    });\n");
         sb.append("  };\n");
         sb.append("  document.head.appendChild(s);\n");
+        sb.append("})();\n");
+        sb.append("</script>\n");
+    }
+
+    private static void appendQqMetaTags(
+        StringBuilder sb,
+        String title,
+        String desc,
+        String imageUrl,
+        String shareUrl
+    ) {
+        var qqTitle = ShareTextBytes.truncateUtf8(title, SharePageConstants.QQ_SHARE_TITLE_MAX_BYTES);
+        var qqDesc = ShareTextBytes.truncateUtf8(desc, SharePageConstants.QQ_SHARE_DESC_MAX_BYTES);
+        var qqShareUrl = ShareTextBytes.truncateUtf8(shareUrl, SharePageConstants.QQ_SHARE_URL_MAX_BYTES);
+        if (!qqTitle.isBlank()) {
+            sb.append("<meta itemprop=\"name\" content=\"").append(HtmlEscapes.text(qqTitle)).append("\">\n");
+        }
+        if (!qqDesc.isBlank()) {
+            sb.append("<meta name=\"description\" itemprop=\"description\" content=\"")
+                .append(HtmlEscapes.text(qqDesc))
+                .append("\">\n");
+        }
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            sb.append("<meta itemprop=\"image\" content=\"").append(HtmlEscapes.text(imageUrl.trim())).append("\">\n");
+        }
+        if (!qqShareUrl.isBlank()) {
+            sb.append("<meta itemprop=\"url\" content=\"").append(HtmlEscapes.text(qqShareUrl)).append("\">\n");
+        }
+    }
+
+    private void appendQqScripts(StringBuilder sb, String title, String desc, String imageUrl, String shareUrl)
+        throws Exception {
+        var qqTitle = ShareTextBytes.truncateUtf8(title, SharePageConstants.QQ_SHARE_TITLE_MAX_BYTES);
+        var qqDesc = ShareTextBytes.truncateUtf8(desc, SharePageConstants.QQ_SHARE_DESC_MAX_BYTES);
+        var qqShareUrl = ShareTextBytes.truncateUtf8(shareUrl, SharePageConstants.QQ_SHARE_URL_MAX_BYTES);
+        var qqImage = imageUrl == null ? "" : imageUrl.trim();
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        if (!qqShareUrl.isBlank()) {
+            payload.put("share_url", qqShareUrl);
+        }
+        payload.put("title", qqTitle.isBlank() ? SharePageCopy.FALLBACK_PAGE_TITLE : qqTitle);
+        payload.put("desc", qqDesc.isBlank() ? payload.get("title") : qqDesc);
+        if (!qqImage.isBlank()) {
+            payload.put("image_url", qqImage);
+        }
+
+        var payloadJson = objectMapper.writeValueAsString(payload);
+
+        sb.append("<script>\n");
+        sb.append("(function () {\n");
+        sb.append("  var apiUrl = ").append(objectMapper.writeValueAsString(SharePageConstants.QQ_MQQAPI_SCRIPT_URL)).append(";\n");
+        sb.append("  var shareInfo = ").append(payloadJson).append(";\n");
+        sb.append("  var loadFail = ").append(objectMapper.writeValueAsString(SharePageCopy.QQ_SCRIPT_LOAD_FAIL)).append(";\n");
+        sb.append("  function applyShare() {\n");
+        sb.append("    try {\n");
+        sb.append("      if (window.mqq && typeof window.mqq.invoke === 'function') {\n");
+        sb.append("        window.mqq.invoke('data', 'setShareInfo', shareInfo);\n");
+        sb.append("        return true;\n");
+        sb.append("      }\n");
+        sb.append("    } catch (e) {}\n");
+        sb.append("    return false;\n");
+        sb.append("  }\n");
+        sb.append("  if (applyShare()) return;\n");
+        sb.append("  var s = document.createElement('script');\n");
+        sb.append("  s.src = apiUrl;\n");
+        sb.append("  s.async = true;\n");
+        sb.append("  s.onerror = function () {\n");
+        sb.append("    try { console.warn(loadFail); } catch (e) {}\n");
+        sb.append("  };\n");
+        sb.append("  s.onload = function () { applyShare(); };\n");
+        sb.append("  document.head.appendChild(s);\n");
+        sb.append("})();\n");
+        sb.append("</script>\n");
+    }
+
+    /**
+     * 用户从右上角完成一次分享后隐藏提示（微信 visibility / QQ qbrowserVisibilityChange）。
+     */
+    private void appendShareHintDismissScript(StringBuilder sb, String sid, boolean showShareHintInitially) throws Exception {
+        var sidToken = objectMapper.writeValueAsString(sid.isBlank() ? "default" : sid.trim());
+        sb.append("<script>\n");
+        sb.append("(function () {\n");
+        sb.append("  var key = 'ws_share_hint_dismissed_' + ").append(sidToken).append(";\n");
+        sb.append("  function dismiss() {\n");
+        sb.append("    document.querySelectorAll('.ws-share-hint').forEach(function (el) {\n");
+        sb.append("      el.style.display = 'none';\n");
+        sb.append("    });\n");
+        sb.append("    try { sessionStorage.setItem(key, '1'); } catch (e) {}\n");
+        sb.append("  }\n");
+        if (!showShareHintInitially) {
+            sb.append("  dismiss();\n");
+        } else {
+            sb.append("  try { if (sessionStorage.getItem(key) === '1') dismiss(); } catch (e) {}\n");
+            sb.append("  var wasHidden = false;\n");
+            sb.append("  document.addEventListener('visibilitychange', function () {\n");
+            sb.append("    if (document.hidden) { wasHidden = true; return; }\n");
+            sb.append("    if (wasHidden) { wasHidden = false; dismiss(); }\n");
+            sb.append("  });\n");
+            sb.append("  document.addEventListener('qbrowserVisibilityChange', function (e) {\n");
+            sb.append("    if (e && e.hidden) { wasHidden = true; return; }\n");
+            sb.append("    if (wasHidden) { wasHidden = false; dismiss(); }\n");
+            sb.append("  });\n");
+        }
         sb.append("})();\n");
         sb.append("</script>\n");
     }

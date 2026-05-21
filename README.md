@@ -1,7 +1,7 @@
 <div align="center">
     <img alt="logo" width="106px" src="./src/main/resources/logo.png" style="border-radius: 16px;">
-    <h1>Halo - Wechat Share（自定义微信分享卡片）</h1>
-    <p>将网址、图片、音乐、视频、文件封装为卡片样式分享至微信，并提供数据看板功能</p>
+    <h1>Halo - Wechat Share（自定义社交分享卡片）</h1>
+    <p>将网址、图片、音乐、视频、文件封装为卡片样式分享至微信或QQ，并提供数据看板功能</p>
     <p align="center">
     <a href="https://www.halo.run/store/apps/app-c6kw29tr"><img alt="Halo App Store" src="https://img.shields.io/badge/Halo-%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA-%230A81F5?style=flat-square&logo=appstore&logoColor=%23fff" /></a>
         <a href="https://github.com/Avrinbai/halo-plugin-wechat-share/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/Avrinbai/halo-plugin-wechat-share?style=flat-square&logo=github" /></a>
@@ -31,6 +31,7 @@
 ### 4. 其他说明
 
 - 若未完成上述配置，直接在微信内使用,等配置完成后，请务必清理微信软件缓存，以确保配置生效。
+- QQ分享卡片无需配置公众号信息。
 ---
 
 ## 目录
@@ -55,6 +56,7 @@
 - 数据看板：汇总访问指标、近七日趋势、访问量排行、访问明细筛选与详情（详见 [数据看板](#数据看板)）
 - 插件设置：公众号 **AppId / AppSecret**（服务端换票与 `wx.config` 签名）、**公开路径前缀**（默认 `/wechat-share`）、可选 **实验性 IP 归属查询** 及上游接口地址
 - 分享落地页在微信内置浏览器中加载 **jweixin**，调用 `updateAppMessageShareData` / `updateTimelineShareData` 更新会话与朋友圈分享卡片
+- 在手机 QQ 内置浏览器中通过 **`mqq.invoke('data','setShareInfo')`** 与 Open Graph 式 **meta** 标签定制分享卡片（无需额外 AppId）
 
 ## 卡片类型说明
 
@@ -183,10 +185,13 @@
 
 各类型字段含义与校验以控制台界面为准；编辑弹窗右侧提供 **实时预览**（版式与访客落地页一致）。
 
-### 5) 在微信中使用
+### 5) 在微信或 QQ 中使用
 
-将生成的二维码在微信内扫描打开，按页面提示从右上角菜单发起分享即可。
-**注意，必须是通过扫描二维码才可达成卡片样式，至于为什么不能通过生成的链接访问再分享成卡片我也不知道，能用就行，有空我再研究。**
+将生成的二维码在 **微信** 或 **手机 QQ** 内扫描打开落地页，再按页面提示从右上角菜单分享给好友/群即可查看自定义卡片效果。
+
+**微信：** 须配置公众号 AppId / AppSecret 与 JS 接口安全域名；实践中更稳妥的方式仍是扫码进入落地页后再分享。
+
+**手机 QQ：** 使用 [setShareInfo](https://open.mobile.qq.com/api/mqq/index#api:setShareInfo) 定制分享；`share_url` 须与落地页 **同域名**，分享图建议 **≥200×200**。
 
 ---
 
@@ -196,8 +201,10 @@
 
 | 路径 | 作用 |
 |------|------|
-| `https://example.com/wechat-share/share?sid={sid}` | 微信内分享落地页，注入 JSSDK 分享参数 |
-| `https://example.com/wechat-share/go?sid={sid}` | 302 跳转到卡片配置的落地 URL |
+| `https://example.com/wechat-share/share/{sid}` | 分享落地页（推荐；兼容 QQ 丢 query） |
+| `https://example.com/wechat-share/share?sid={sid}` | 同上（旧 query 形式，仍支持） |
+| `https://example.com/wechat-share/go/{sid}` | 302 跳转到卡片配置的落地 URL（链接卡片微信分享用） |
+| `https://example.com/wechat-share/go?sid={sid}` | 同上（旧 query 形式，仍支持） |
 
 修改「公开路径前缀」并保存后，对外路径随之变化（别忘了更新已发出的推广链接）。
 

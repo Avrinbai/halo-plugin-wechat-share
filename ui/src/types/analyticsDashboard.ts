@@ -1,6 +1,7 @@
 export type EnvBreakdown = {
   wechat: number
   wework: number
+  qq: number
   mobileOther: number
   desktop: number
   unknown: number
@@ -53,6 +54,7 @@ export type VisitPagePayload = {
 export function visitEnvCategory(envKind: string | undefined | null): string {
   const k = (envKind || '').trim().toUpperCase()
   if (k === 'WECHAT' || k === 'WEWORK') return '微信'
+  if (k === 'QQ') return 'QQ'
   if (k === 'MOBILE_OTHER' || k === 'DESKTOP') return '浏览器'
   return '其他'
 }

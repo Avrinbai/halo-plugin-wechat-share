@@ -1,6 +1,7 @@
 package com.avrinbai.wechatshare.web;
 
 import com.avrinbai.wechatshare.service.WechatShareSettingsService;
+import com.avrinbai.wechatshare.support.ShareRoutePaths;
 import java.util.List;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
@@ -47,23 +48,23 @@ public class WechatSharePublicWebFilter implements AdditionalWebFilter {
                     settings.getSpec() == null ? null : settings.getSpec().getPublicBasePath(),
                     WechatShareSettingsService.DEFAULT_PUBLIC_BASE_PATH
                 );
-                var sharePath = base + "/share";
-                var goPath = base + "/go";
-
                 if (!HttpMethod.GET.equals(method)) {
                     return chain.filter(exchange);
                 }
 
-                if (!path.equals(sharePath) && !path.equals(goPath)) {
+                boolean isShare = ShareRoutePaths.matchesShare(path, base);
+                boolean isGo = ShareRoutePaths.matchesGo(path, base);
+                if (!isShare && !isGo) {
                     return chain.filter(exchange);
                 }
                 var req = ServerRequest.create(exchange, handlerStrategies.messageReaders());
-                Mono<ServerResponse> responseMono = path.equals(sharePath)
-                    ? wechatShareSiteHandler.share(req)
-                    : wechatShareSiteHandler.go(req);
+                Mono<ServerResponse> responseMono = isShare
+                    ? wechatShareSiteHandler.share(req, base)
+                    : wechatShareSiteHandler.go(req, base);
                 var ctx = new FilterServerResponseContext(handlerStrategies);
                 return responseMono.flatMap(sr -> sr.writeTo(exchange, ctx));
-            });
+            })
+            .onErrorResume(ex -> chain.filter(exchange));
     }
 
     private static String stripTrailingSlash(String path) {

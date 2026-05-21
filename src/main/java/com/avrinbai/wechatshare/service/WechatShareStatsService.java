@@ -59,6 +59,7 @@ public class WechatShareStatsService {
         switch (k) {
             case VisitEnvKind.WECHAT -> spec.setWechat(nullToZero(spec.getWechat()) + 1);
             case VisitEnvKind.WEWORK -> spec.setWework(nullToZero(spec.getWework()) + 1);
+            case VisitEnvKind.QQ -> spec.setQq(nullToZero(spec.getQq()) + 1);
             case VisitEnvKind.MOBILE_OTHER -> spec.setMobileOther(nullToZero(spec.getMobileOther()) + 1);
             case VisitEnvKind.DESKTOP -> spec.setDesktop(nullToZero(spec.getDesktop()) + 1);
             default -> spec.setUnknown(nullToZero(spec.getUnknown()) + 1);
@@ -95,6 +96,7 @@ public class WechatShareStatsService {
         spec.setTotalVisits(0L);
         spec.setWechat(0L);
         spec.setWework(0L);
+        spec.setQq(0L);
         spec.setMobileOther(0L);
         spec.setDesktop(0L);
         spec.setUnknown(0L);

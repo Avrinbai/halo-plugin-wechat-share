@@ -24,9 +24,9 @@ export default definePlugin({
           import(/* webpackChunkName: "WechatSharePluginOutlet" */ './views/WechatSharePluginOutlet.vue'),
         redirect: { name: 'WechatShareCards' },
         meta: {
-          title: '自定义微信分享卡片',
+          title: '自定义社交分享卡片',
           menu: {
-            name: '自定义微信分享卡片',
+            name: '自定义社交分享卡片',
             icon: markRaw(RiShareForwardLine),
             priority: 35,
           },
@@ -38,7 +38,7 @@ export default definePlugin({
             component: () =>
               import(/* webpackChunkName: "WechatShareConsoleView" */ './views/WechatShareConsoleView.vue'),
             meta: {
-              title: '自定义微信分享卡片',
+              title: '自定义社交分享卡片',
               searchable: true,
             },
           },

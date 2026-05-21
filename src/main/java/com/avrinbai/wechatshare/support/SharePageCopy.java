@@ -10,8 +10,8 @@ public final class SharePageCopy {
     public static final String SIG_STATIC_HINT_LEAD = "未正确配置公众号信息，";
     public static final String SIG_STATIC_HINT_TAIL = "请到插件「插件配置」填写 AppId、AppSecret。";
 
-    public static final String HINT_SHARE_TOP_RIGHT_EFFECT = "右上角分享至朋友或朋友圈查看效果";
-    public static final String HINT_SHARE_TOP_RIGHT_THEN_HIDES = "右上角分享至朋友或朋友圈后此文案将隐藏";
+    public static final String HINT_SHARE_TOP_RIGHT_EFFECT = "在右上角分享给好友或群，可查看自定义卡片效果（微信 / QQ）";
+    public static final String HINT_SHARE_TOP_RIGHT_THEN_HIDES = "在右上角分享给好友或群后，此提示将自动隐藏（微信 / QQ）";
 
     public static final String LINK_CARD_SVG_LABEL = "链接";
 
@@ -49,4 +49,7 @@ public final class SharePageCopy {
 
     public static final String WX_SCRIPT_WX_UNDEFINED =
         "微信 JSSDK 已请求但未暴露 wx 对象，无法继续配置分享。请更换微信内置浏览器重试。";
+
+    public static final String QQ_SCRIPT_LOAD_FAIL =
+        "无法加载手机 QQ 分享桥接脚本，QQ 内自定义分享可能不可用。请使用手机 QQ 内置浏览器打开本页后重试。";
 }

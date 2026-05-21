@@ -37,6 +37,9 @@ public class WechatShareStats extends AbstractExtension {
         @Schema(description = "企业微信")
         private Long wework;
 
+        @Schema(description = "手机 QQ 内置浏览器")
+        private Long qq;
+
         @Schema(description = "其他移动浏览器")
         private Long mobileOther;
 

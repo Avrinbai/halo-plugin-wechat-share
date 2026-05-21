@@ -62,6 +62,7 @@ public class WechatShareAnalyticsService {
         long totalVisits = 0L;
         long wechat = 0L;
         long wework = 0L;
+        long qq = 0L;
         long mobileOther = 0L;
         long desktop = 0L;
         long unknown = 0L;
@@ -71,6 +72,7 @@ public class WechatShareAnalyticsService {
             totalVisits = nullToZero(sp.getTotalVisits());
             wechat = nullToZero(sp.getWechat());
             wework = nullToZero(sp.getWework());
+            qq = nullToZero(sp.getQq());
             mobileOther = nullToZero(sp.getMobileOther());
             desktop = nullToZero(sp.getDesktop());
             unknown = nullToZero(sp.getUnknown());
@@ -112,6 +114,7 @@ public class WechatShareAnalyticsService {
             scan.ipStats().uniqueIpAllTime(),
             wechat,
             wework,
+            qq,
             mobileOther,
             desktop,
             unknown,
@@ -325,6 +328,7 @@ public class WechatShareAnalyticsService {
         long uniqueIpAllTime,
         long envWechat,
         long envWework,
+        long envQq,
         long envMobileOther,
         long envDesktop,
         long envUnknown,
@@ -371,6 +375,7 @@ public class WechatShareAnalyticsService {
         return switch (envKind) {
             case VisitEnvKind.WECHAT -> "微信内置浏览器";
             case VisitEnvKind.WEWORK -> "企业微信";
+            case VisitEnvKind.QQ -> "手机 QQ";
             case VisitEnvKind.MOBILE_OTHER -> "其他移动浏览器";
             case VisitEnvKind.DESKTOP -> "桌面浏览器";
             case VisitEnvKind.UNKNOWN -> "未知";

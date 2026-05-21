@@ -7,6 +7,7 @@ public final class VisitEnvKind {
 
     public static final String WECHAT = "WECHAT";
     public static final String WEWORK = "WEWORK";
+    public static final String QQ = "QQ";
     public static final String MOBILE_OTHER = "MOBILE_OTHER";
     public static final String DESKTOP = "DESKTOP";
     public static final String UNKNOWN = "UNKNOWN";
@@ -24,6 +25,9 @@ public final class VisitEnvKind {
         }
         if (u.contains("wxwork")) {
             return WEWORK;
+        }
+        if (u.contains("qq/") || u.contains("mqqbrowser") || u.contains("qqbrowser")) {
+            return QQ;
         }
         boolean mobile =
             u.contains("android") || u.contains("iphone") || u.contains("ipad") || u.contains("mobile");

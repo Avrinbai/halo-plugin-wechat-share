@@ -9,8 +9,8 @@ import com.avrinbai.wechatshare.support.VisitHitType;
 import com.avrinbai.wechatshare.support.HtmlEscapes;
 import com.avrinbai.wechatshare.support.HttpUrls;
 import com.avrinbai.wechatshare.support.PublicUrls;
+import com.avrinbai.wechatshare.support.ShareRoutePaths;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -39,8 +39,13 @@ public class WechatShareSiteHandler {
         this.visitRecorder = visitRecorder;
     }
 
-    public Mono<ServerResponse> share(ServerRequest request) {
-        var sid = request.queryParam("sid").orElse("").trim();
+    public Mono<ServerResponse> share(ServerRequest request, String publicBasePath) {
+        var sid = resolveSid(request, publicBasePath, ShareRoutePaths.ACTION_SHARE);
+        if (sid.isBlank()) {
+            return ServerResponse.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.TEXT_HTML)
+                .bodyValue(notFoundHtml("链接无效：缺少卡片标识。请从控制台重新复制分享链接或二维码。"));
+        }
         return settingsService.load()
             .publishOn(Schedulers.boundedElastic())
             .flatMap(settings -> Mono.fromCallable(() -> cardService.findBySid(sid).orElse(null))
@@ -66,23 +71,29 @@ public class WechatShareSiteHandler {
                         var kind = WechatShareCardKind.normalize(card.getSpec().getCardKind());
 
                         String wechatShareLink;
+                        String qqShareLink;
                         if (WechatShareCardKind.LINK.equals(kind)) {
-                            wechatShareLink = PublicUrls.absoluteHttp(
-                                site,
-                                basePath + "/go?sid=" + java.net.URLEncoder.encode(sid, StandardCharsets.UTF_8)
-                            );
+                            var goPath = ShareRoutePaths.goPathWithSid(basePath, sid);
+                            wechatShareLink = PublicUrls.absoluteHttp(site, goPath);
+                            qqShareLink = wechatShareLink;
                         } else {
-                            wechatShareLink = PublicUrls.absoluteHttp(
-                                site,
-                                basePath + "/share?sid=" + java.net.URLEncoder.encode(sid, StandardCharsets.UTF_8)
-                                    + "&hint=0"
-                            );
+                            var sharePath = ShareRoutePaths.sharePathWithSid(basePath, sid);
+                            wechatShareLink = PublicUrls.absoluteHttp(site, sharePath + "?hint=0");
+                            qqShareLink = PublicUrls.absoluteHttp(site, sharePath + "?hint=0");
                         }
 
                         var hintParam = request.queryParam("hint").orElse("");
                         var showShareHint = !"0".equals(hintParam);
 
-                        var html = sharePageRenderer.render(card, settings, signUrl, wechatShareLink, showShareHint, site);
+                        var html = sharePageRenderer.render(
+                            card,
+                            settings,
+                            signUrl,
+                            wechatShareLink,
+                            qqShareLink,
+                            showShareHint,
+                            site
+                        );
                         visitRecorder.recordAsync(request, sid, VisitHitType.SHARE);
                         return ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(html);
                     } catch (Exception e) {
@@ -93,8 +104,13 @@ public class WechatShareSiteHandler {
                 }));
     }
 
-    public Mono<ServerResponse> go(ServerRequest request) {
-        var sid = request.queryParam("sid").orElse("").trim();
+    public Mono<ServerResponse> go(ServerRequest request, String publicBasePath) {
+        var sid = resolveSid(request, publicBasePath, ShareRoutePaths.ACTION_GO);
+        if (sid.isBlank()) {
+            return ServerResponse.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.TEXT_HTML)
+                .bodyValue(notFoundHtml("链接无效：缺少卡片标识。请从控制台重新复制分享链接或二维码。"));
+        }
         return Mono.fromCallable(() -> cardService.findBySid(sid).orElse(null))
             .subscribeOn(Schedulers.boundedElastic())
             .flatMap(card -> {
@@ -128,10 +144,13 @@ public class WechatShareSiteHandler {
             });
     }
 
-    /**
-     * 与微信客户端用于签名的页面 URL 对齐：优先使用 Halo「外部访问地址」作为 scheme+host，
-     * path 与 query 与当前请求一致（保留 rawQuery 编码顺序）。
-     */
+
+    private static String resolveSid(ServerRequest request, String publicBasePath, String action) {
+        var querySid = request.queryParam("sid").orElse("");
+        var path = request.path();
+        return ShareRoutePaths.resolveSid(path, publicBasePath, action, querySid);
+    }
+
     static String buildWxJsSdkSignUrl(ServerRequest request, String externalSiteRoot) {
         var path = request.path();
         var rawQuery = request.uri().getRawQuery();
