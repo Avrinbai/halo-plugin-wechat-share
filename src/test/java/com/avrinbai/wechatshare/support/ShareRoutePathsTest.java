@@ -24,4 +24,15 @@ class ShareRoutePathsTest {
         assertTrue(ShareRoutePaths.matchesShare("/wechat-share/share", "/wechat-share"));
         assertTrue(ShareRoutePaths.matchesShare("/wechat-share/share/abc", "/wechat-share"));
     }
+
+    @Test
+    void viewPathWithSid_usesPathSegment() {
+        assertEquals("/wechat-share/view/abc123", ShareRoutePaths.viewPathWithSid("/wechat-share", "abc123"));
+    }
+
+    @Test
+    void matchesViewPathVariants() {
+        assertTrue(ShareRoutePaths.matchesView("/wechat-share/view", "/wechat-share"));
+        assertTrue(ShareRoutePaths.matchesView("/wechat-share/view/abc", "/wechat-share"));
+    }
 }

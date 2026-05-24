@@ -388,7 +388,8 @@ public class WechatShareAnalyticsService {
             return "";
         }
         return switch (hitType) {
-            case "SHARE" -> "落地页";
+            case "SHARE" -> "推广落地";
+            case "VIEW" -> "分享落地";
             case "GO" -> "跳转";
             default -> hitType;
         };

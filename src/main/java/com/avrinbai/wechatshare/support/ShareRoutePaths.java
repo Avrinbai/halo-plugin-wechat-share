@@ -10,6 +10,7 @@ public final class ShareRoutePaths {
 
     public static final String ACTION_SHARE = "share";
     public static final String ACTION_GO = "go";
+    public static final String ACTION_VIEW = "view";
 
     private ShareRoutePaths() {
     }
@@ -20,6 +21,10 @@ public final class ShareRoutePaths {
 
     public static String goPathWithSid(String normalizedPublicBase, String sid) {
         return pathWithSid(normalizedPublicBase, ACTION_GO, sid);
+    }
+
+    public static String viewPathWithSid(String normalizedPublicBase, String sid) {
+        return pathWithSid(normalizedPublicBase, ACTION_VIEW, sid);
     }
 
     /** 兼容旧链接：{@code /prefix/share?sid=} */
@@ -37,6 +42,10 @@ public final class ShareRoutePaths {
 
     public static boolean matchesGo(String pathWithinApp, String normalizedPublicBase) {
         return matchesAction(pathWithinApp, normalizedPublicBase, ACTION_GO);
+    }
+
+    public static boolean matchesView(String pathWithinApp, String normalizedPublicBase) {
+        return matchesAction(pathWithinApp, normalizedPublicBase, ACTION_VIEW);
     }
 
     public static String resolveSid(String pathWithinApp, String normalizedPublicBase, String action, String querySid) {

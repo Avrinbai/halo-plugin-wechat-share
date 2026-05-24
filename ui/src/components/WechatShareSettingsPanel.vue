@@ -126,7 +126,7 @@ defineExpose({ load })
           <input v-model="form.publicBasePath" type="text" class="settings-input" placeholder="/wechat-share" />
           <p class="settings-hint">
             默认 <code class="settings-code">/wechat-share</code>；对外固定为该前缀下的
-            <code class="settings-code">/share</code> 与 <code class="settings-code">/go</code>。修改保存后立即生效。
+            <code class="settings-code">/share</code>、<code class="settings-code">/view</code> 与 <code class="settings-code">/go</code>。修改保存后立即生效。
           </p>
         </div>
 

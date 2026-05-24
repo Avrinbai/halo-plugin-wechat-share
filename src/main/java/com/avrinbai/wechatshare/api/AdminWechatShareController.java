@@ -238,7 +238,3 @@ public class AdminWechatShareController {
     public record ShareQrPayload(String mimeType, String base64) {
     }
 }
-
-/** PATCH /cards/{name}/enabled 请求体 */
-record EnabledPatch(boolean enabled) {
-}

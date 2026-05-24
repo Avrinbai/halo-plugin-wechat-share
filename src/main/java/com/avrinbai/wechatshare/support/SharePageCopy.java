@@ -11,7 +11,6 @@ public final class SharePageCopy {
     public static final String SIG_STATIC_HINT_TAIL = "请到插件「插件配置」填写 AppId、AppSecret。";
 
     public static final String HINT_SHARE_TOP_RIGHT_EFFECT = "在右上角分享给好友或群，可查看自定义卡片效果（微信 / QQ）";
-    public static final String HINT_SHARE_TOP_RIGHT_THEN_HIDES = "在右上角分享给好友或群后，此提示将自动隐藏（微信 / QQ）";
 
     public static final String LINK_CARD_SVG_LABEL = "链接";
 

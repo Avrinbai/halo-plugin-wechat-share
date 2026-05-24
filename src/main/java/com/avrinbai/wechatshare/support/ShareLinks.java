@@ -12,4 +12,8 @@ public final class ShareLinks {
     public static String goPathAndQuery(String normalizedPublicBase, String sid) {
         return ShareRoutePaths.goPathWithSid(normalizedPublicBase, sid);
     }
+
+    public static String viewPathAndQuery(String normalizedPublicBase, String sid) {
+        return ShareRoutePaths.viewPathWithSid(normalizedPublicBase, sid);
+    }
 }

@@ -68,6 +68,20 @@ tasks.named('jar') {
 
 tasks.named('generatePluginComponentsIdx') {
     notCompatibleWithConfigurationCache('This task invokes "Task.project" at execution time, which is not supported with configuration cache.')
+    doLast {
+        def idx = file("${layout.buildDirectory.get()}/tmp/META-INF/plugin-components.idx")
+        if (!idx.exists()) {
+            return
+        }
+        def lines = idx.readLines().findAll { line ->
+            def trimmed = line.trim()
+            trimmed && !trimmed.startsWith('#')
+        }
+        def dupes = lines.groupBy { it }.findAll { _, group -> group.size() > 1 }.keySet()
+        if (!dupes.isEmpty()) {
+            throw new GradleException("Duplicate entries in plugin-components.idx: ${dupes}")
+        }
+    }
 }
 
 halo {

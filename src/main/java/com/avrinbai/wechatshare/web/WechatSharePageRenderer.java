@@ -107,8 +107,6 @@ public class WechatSharePageRenderer {
             appendVideoUiScript(sb);
         }
 
-        appendShareHintDismissScript(sb, nz(spec.getSid()), showShareHint);
-
         sb.append("</body>\n</html>\n");
         return sb.toString();
     }
@@ -285,7 +283,7 @@ public class WechatSharePageRenderer {
         appendSdkBlocks(sb, sig);
         if (showShareHint) {
             sb.append("<p class=\"img-foot ws-share-hint\">")
-                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT))
                 .append("</p>");
         }
         sb.append("</div></div>");
@@ -364,7 +362,7 @@ public class WechatSharePageRenderer {
         appendSdkBlocks(sb, sig);
         if (showShareHint) {
             sb.append("<p class=\"au-foot ws-share-hint\">")
-                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT))
                 .append("</p>");
         }
         sb.append("</div></div>\n");
@@ -437,7 +435,7 @@ public class WechatSharePageRenderer {
         appendSdkBlocks(sb, sig);
         if (showShareHint) {
             sb.append("<p class=\"vv-hint ws-share-hint\">")
-                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT))
                 .append("</p>");
         }
         sb.append("</div></div></div>\n");
@@ -492,7 +490,7 @@ public class WechatSharePageRenderer {
 
         if (showShareHint) {
             sb.append("<p class=\"fp-hint ws-share-hint\">")
-                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_THEN_HIDES))
+                .append(HtmlEscapes.text(SharePageCopy.HINT_SHARE_TOP_RIGHT_EFFECT))
                 .append("</p>");
         }
         sb.append("</div>\n");
@@ -790,38 +788,6 @@ public class WechatSharePageRenderer {
         sb.append("  };\n");
         sb.append("  s.onload = function () { applyShare(); };\n");
         sb.append("  document.head.appendChild(s);\n");
-        sb.append("})();\n");
-        sb.append("</script>\n");
-    }
-
-    /**
-     * 用户从右上角完成一次分享后隐藏提示（微信 visibility / QQ qbrowserVisibilityChange）。
-     */
-    private void appendShareHintDismissScript(StringBuilder sb, String sid, boolean showShareHintInitially) throws Exception {
-        var sidToken = objectMapper.writeValueAsString(sid.isBlank() ? "default" : sid.trim());
-        sb.append("<script>\n");
-        sb.append("(function () {\n");
-        sb.append("  var key = 'ws_share_hint_dismissed_' + ").append(sidToken).append(";\n");
-        sb.append("  function dismiss() {\n");
-        sb.append("    document.querySelectorAll('.ws-share-hint').forEach(function (el) {\n");
-        sb.append("      el.style.display = 'none';\n");
-        sb.append("    });\n");
-        sb.append("    try { sessionStorage.setItem(key, '1'); } catch (e) {}\n");
-        sb.append("  }\n");
-        if (!showShareHintInitially) {
-            sb.append("  dismiss();\n");
-        } else {
-            sb.append("  try { if (sessionStorage.getItem(key) === '1') dismiss(); } catch (e) {}\n");
-            sb.append("  var wasHidden = false;\n");
-            sb.append("  document.addEventListener('visibilitychange', function () {\n");
-            sb.append("    if (document.hidden) { wasHidden = true; return; }\n");
-            sb.append("    if (wasHidden) { wasHidden = false; dismiss(); }\n");
-            sb.append("  });\n");
-            sb.append("  document.addEventListener('qbrowserVisibilityChange', function (e) {\n");
-            sb.append("    if (e && e.hidden) { wasHidden = true; return; }\n");
-            sb.append("    if (wasHidden) { wasHidden = false; dismiss(); }\n");
-            sb.append("  });\n");
-        }
         sb.append("})();\n");
         sb.append("</script>\n");
     }

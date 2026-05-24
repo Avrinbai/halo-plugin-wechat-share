@@ -615,7 +615,7 @@ function removeFileNote(index: number) {
                       <p v-if="previewSub" class="pv-img-intro">{{ previewSub }}</p>
                       <p v-if="form.contactInfo.trim()" class="pv-img-contact">{{ form.contactInfo }}</p>
                       <p class="pv-img-sdk-ph" aria-hidden="true" />
-                      <p class="pv-img-foot">右上角分享至朋友或朋友圈封装为卡片</p>
+                      <p class="pv-img-foot">在右上角分享给好友或群，可查看自定义卡片效果（微信 / QQ）</p>
                     </div>
                   </div>
                   <div v-if="cardNotesPreviewRows.length" class="pv-in-card">

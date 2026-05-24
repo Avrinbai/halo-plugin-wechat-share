@@ -64,11 +64,11 @@
 
 | 类型 | 说明 | 落地页要点 |
 |------|------|------------|
-| **链接** | 适合普通外链分享 | 分享卡片点开会 **302 跳转到** 你填写的跳转 URL（`/go?sid=`） |
-| **图片** | 以图为主、可配文案 |分享回流仍为落地页 |
-| **音频** | 音乐/播客等 | 分享回流仍为落地页 |
-| **视频** | 竖屏沉浸预览 | 分享回流仍为落地页 |
-| **文件** | 附件下载 | 分享回流仍为落地页 |
+| **链接** | 适合普通外链分享 | 分享卡片点开会 **302 跳转到** 你填写的跳转 URL（`/go/{sid}`） |
+| **图片** | 以图为主、可配文案 | 扫码进入 `/share`（带引导）；微信/QQ 二次分享使用 `/view` |
+| **音频** | 音乐/播客等 | 同上 |
+| **视频** | 竖屏沉浸预览 | 同上 |
+| **文件** | 附件下载 | 同上 |
 
 **填写提示（共性）：**
 
@@ -201,8 +201,11 @@
 
 | 路径 | 作用 |
 |------|------|
-| `https://example.com/wechat-share/share/{sid}` | 分享落地页（推荐；兼容 QQ 丢 query） |
+| `https://example.com/wechat-share/share/{sid}` | 推广落地页（扫码、复制链接；媒体类含分享引导文案） |
 | `https://example.com/wechat-share/share?sid={sid}` | 同上（旧 query 形式，仍支持） |
+| `https://example.com/wechat-share/view/{sid}` | 媒体类（图片/音频/视频/文件）二次分享落地页，**无引导文案** |
+| `https://example.com/wechat-share/view?sid={sid}` | 同上（旧 query 形式，仍支持） |
+| `https://example.com/wechat-share/share/{sid}?hint=0` | 兼容旧版：自动 **302** 跳转至 `/view/{sid}` |
 | `https://example.com/wechat-share/go/{sid}` | 302 跳转到卡片配置的落地 URL（链接卡片微信分享用） |
 | `https://example.com/wechat-share/go?sid={sid}` | 同上（旧 query 形式，仍支持） |
 

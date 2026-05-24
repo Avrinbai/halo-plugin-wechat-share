@@ -54,13 +54,19 @@ public class WechatSharePublicWebFilter implements AdditionalWebFilter {
 
                 boolean isShare = ShareRoutePaths.matchesShare(path, base);
                 boolean isGo = ShareRoutePaths.matchesGo(path, base);
-                if (!isShare && !isGo) {
+                boolean isView = ShareRoutePaths.matchesView(path, base);
+                if (!isShare && !isGo && !isView) {
                     return chain.filter(exchange);
                 }
                 var req = ServerRequest.create(exchange, handlerStrategies.messageReaders());
-                Mono<ServerResponse> responseMono = isShare
-                    ? wechatShareSiteHandler.share(req, base)
-                    : wechatShareSiteHandler.go(req, base);
+                Mono<ServerResponse> responseMono;
+                if (isShare) {
+                    responseMono = wechatShareSiteHandler.share(req, base);
+                } else if (isView) {
+                    responseMono = wechatShareSiteHandler.view(req, base);
+                } else {
+                    responseMono = wechatShareSiteHandler.go(req, base);
+                }
                 var ctx = new FilterServerResponseContext(handlerStrategies);
                 return responseMono.flatMap(sr -> sr.writeTo(exchange, ctx));
             })
